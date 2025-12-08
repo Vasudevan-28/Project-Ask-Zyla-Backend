@@ -1,0 +1,11 @@
+load memory :
+    recent messages
+    summary
+    system rules
+
+check then intent
+
+remember the profile data
+
+respond friendly
+
