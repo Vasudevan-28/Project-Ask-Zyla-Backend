@@ -10,3 +10,4 @@ langgraph
 redis
 bcrypt
 uvicorn
+python-dateutil
