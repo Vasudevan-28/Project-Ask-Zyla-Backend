@@ -1,20 +1,3 @@
-# from pymongo import MongoClient
-# from dotenv import load_dotenv
-# import os
-
-# load_dotenv()  # Load MongoDB URI from .env file
-
-# # MONGO_URI = os.getenv("MONGO_URI")
-
-# # MONGO_URI = "mongodb+srv://saravanan_db:Saravanan@cluster0.2r4wahi.mongodb.net/?appName=Cluster0"
-# MONGO_URI = "mongodb+srv://Nobita_arsenal22:NobiArsenal22@arsenal.gxivry5.mongodb.net/?appName=Arsenal"
-
-# client = MongoClient(MONGO_URI)
-
-# db = client["auth_flow"]    # database name
-# users_col = db["users"]     # collection name
-
-
 from __future__ import annotations
 import os, time
 from typing import Any, Dict
@@ -33,9 +16,12 @@ def mongo() -> AsyncIOMotorClient:
         _client = AsyncIOMotorClient("mongodb+srv://Nobita_arsenal22:NobiArsenal22@arsenal.gxivry5.mongodb.net/?appName=Arsenal", uuidRepresentation="standard")
     return _client
 
-db = mongo()["team_zyla"]    # database name
+db = mongo()["team_zyla"]
+bkdb = mongo()["team_zyla_backup"]
 users_col = db["users"] 
 skin_col = db["skinData"]
+
+backup_users = bkdb["users_del"]
 
 
 # async def db():

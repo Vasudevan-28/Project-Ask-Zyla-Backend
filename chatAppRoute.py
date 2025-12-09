@@ -424,9 +424,15 @@ async def get_skin_profile(user_id: str):
     
     spdb = await db()
     
-    doc = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
+    # doc = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
+    doc = await spdb.skinData.find_one({"userId": user_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Profile not found")
+    
+    cleared = doc.get("cleared", False)
+    
+    # if cleared:
+    #     raise HTTPException(status_code=404, detail="data is cleared")     
 
     doc["_id"] = str(doc["_id"])
     return doc
@@ -460,17 +466,22 @@ async def add_skin_answers(user_id: str, data: SkinProfileWrapper):
     body["gender"] = user["gender"]
     body["age"] = age  
 
-    existing = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
+    # existing = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
+    existing = await spdb.skinData.find_one({"userId": user_id})
 
     if not existing:
-        await spdb.skinData.insert_one({"skinProfileData": body})
+        await spdb.skinData.insert_one({"skinProfileData": body, "userId" : user_id, "cleared" : False})
         await spdb.users.update_one({"firebase_uid" : user_id},
                                 {"$set": {"skin_profile" : True}})
         return {"message": "Skin profile created successfully"}
 
+    # result = await spdb.skinData.update_one(
+    #     {"skinProfileData.userId": user_id},
+    #     {"$set": {"skinProfileData": body}}
+    # )
     result = await spdb.skinData.update_one(
-        {"skinProfileData.userId": user_id},
-        {"$set": {"skinProfileData": body}}
+        {"userId": user_id},
+        {"$set": {"skinProfileData": body, "userId" : user_id, "cleared" : False}}
     )
     
     await spdb.users.update_one({"firebase_uid" : user_id},
@@ -483,60 +494,8 @@ async def add_skin_answers(user_id: str, data: SkinProfileWrapper):
 
 
 
+
 import json
-
-@chatApp.put("/skin-profile-add/{user_id}")
-async def add_skin_profile(user_id: str, data: SkinProfileWrapper):
-    spdb = await db()
-
-    body = data.skinProfileData.model_dump()
-
-    
-    existing = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
-
-    if not existing:
-        body["userId"] = user_id
-        await spdb.skinData.insert_one({"skinProfileData": body})
-        return {"message": "Skin profile created successfully"}
-
-    result = await spdb.skinData.update_one(
-        {"skinProfileData.userId": user_id},
-        {"$set": {"skinProfileData": body}}
-    )
-
-    if result.modified_count == 0:
-        return {"message": "No changes made, profile already up to date"}
-
-    return {"message": "Skin profile updated successfully"}
-
-
-
-@chatApp.put("/skin-profile-addTest/{user_id}")
-async def add_skin_profile(user_id: str, data: dict):
-    spdb = await db()
-
-    body = data.skinProfileData.model_dump()
-
-    
-    existing = await spdb.skinData.find_one({"skinProfileData.userId": user_id})
-
-    if not existing:
-        body["userId"] = user_id
-        await spdb.skinData.insert_one({"skinProfileData": data})
-        return {"message": "Skin profile created successfully"}
-
-    result = await spdb.skinData.update_one(
-        {"skinProfileData.userId": user_id},
-        {"$set": {"skinProfileData": body}},
-        upsert=True
-    )
-
-    if result.modified_count == 0:
-        return {"message": "No changes made, profile already up to date"}
-
-    return {"message": "Skin profile updated successfully"}
-
-
 
 from z_chatbot_module.llm_core import call_groq_model
 

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from utils.db import users_col, skin_col
+from utils.db import users_col, skin_col, backup_users
 from utils.auth_helpers import hash_password, verify_password, generate_otp, otp_expiry
 from firebase_admin_init import *
 from firebase_admin import auth
@@ -18,6 +18,8 @@ from chatAppRoute import chatApp
 from z_dashboard.products import prrouter
 from z_dashboard.todos import torouter
 from notifications import ntrouter
+
+from clearCache import clearrt
 
 from settings import sett
 
@@ -37,6 +39,8 @@ app.include_router(torouter, tags=["todos"])
 app.include_router(sett, tags=["settings"])
 
 app.include_router(ntrouter)
+
+app.include_router(clearrt, tags=["sensitive"])
 
 
 app.add_middleware(
@@ -141,16 +145,7 @@ class GoogleEmailCheck(BaseModel):
     email: str
 
 
-# ----------------------
-# CHECK IF GOOGLE USER EXISTS
-# ----------------------
-# @app.post("/check-google-user")
-# async def check_google_user(data: GoogleEmailCheck):
-#     user = await users_col.find_one({"email": data.email})
 
-#     if user:
-#         return {"exists": True}
-#     return {"exists": False}
 
 from reminder_service import start_reminder_loop
 import asyncio
@@ -159,6 +154,9 @@ import asyncio
 async def startup_event():
     asyncio.create_task(start_reminder_loop())
 
+@app.get("/")
+async def root():
+    return {"message": "Backend successfully deployed"}
 
 
 @app.post("/check-google-user")
@@ -197,54 +195,6 @@ async def save_user(data: dict):
     await users_col.insert_one(data)
 
     return {"message": "User saved successfully"}
-# # ----------------------
-# @app.post("/save-user")
-# def save_user(data: SaveUserModel):
-
-#     if users_col.find_one({"email": data.email}):
-#         raise HTTPException(status_code=400, detail="Email already exists")
-
-#     hashed_pw = hash_password(data.password)
-
-#     users_col.insert_one({
-#         "name": data.name,
-#         "email": data.email,
-#         "phone": data.phone,
-#         "firebase_uid": data.firebase_uid,
-#         "password": hashed_pw,
-#         "created_at": data.created_at,
-#         "otp": None,
-#         "otp_expiry": None,
-#         "fcm_token": None
-#     })
-
-#     return {"message": "User saved successfully"}
-
-
-# ----------------------
-# SIGNUP
-# # ----------------------
-# @app.post("/signup")
-# async def signup(data: SignUpModel):
-
-#     if users_col.find_one({"email": data.email}):
-#         raise HTTPException(status_code=400, detail="Email already exists")
-
-#     hashed_pw = hash_password(data.password)
-
-#     users_col.insert_one({
-#         "name": data.name,
-#         "email": data.email,
-#         "phone": data.phone,
-#         "password": hashed_pw,
-#         "firebase_uid": data.firebase_uid,
-#         "otp": None,
-#         "otp_expiry": None,
-#         "fcm_token": None
-#     })
-
-#     return {"message": "Signup successful"}
-
 
 
 @app.post("/signup")
@@ -637,16 +587,35 @@ async def reset_password_email(data: ResetPasswordEmail):
     return {"message": "Password updated"}
 
 
+# @app.post("/delete-account")
+# async def delete_account(data: EmailRequest):
+#     user = await users_col.find_one({"email": data.email})
+
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     await users_col.delete_one({"email": data.email})
+
+#     return {"message": "Account deleted"}
+
+from datetime import datetime
+from fastapi import HTTPException
+
 @app.post("/delete-account")
-def delete_account(data: EmailRequest):
-    user = users_col.find_one({"email": data.email})
+async def delete_account(data: EmailRequest):
+    user = await users_col.find_one({"email": data.email})
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_col.delete_one({"email": data.email})
+    user["_deleted_at"] = str(datetime.now())
 
-    return {"message": "Account deleted"}
+    await backup_users.insert_one(user)
+
+    await users_col.delete_one({"email": data.email})
+
+    return {"message": "Account deleted successfully"}
+
 
 
 # ----------------------
