@@ -154,7 +154,7 @@ import asyncio
 async def startup_event():
     asyncio.create_task(start_reminder_loop())
 
-@app.get("/")
+@app.get("/renderchk")
 async def root():
     return {"message": "Backend successfully deployed"}
 
