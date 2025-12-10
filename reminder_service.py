@@ -53,6 +53,88 @@ async def check_reminders():
                 logger.warning(f"User {uid} not found for product {product.get('_id')}")
             elif not user.get("email"):
                 logger.debug(f"User {uid} has no email set. Skipping reminder.")
+                
+
+logger = logging.getLogger("uvicorn")
+
+REMINDER_SLOTS = ("15:00", "23:18")  # 3PM and 9PM
+
+
+async def check_todo_reminders():
+    """
+    At 15:00 and 21:00, find users with incomplete todos for today
+    and create a notification for them.
+    """
+    ndb = await db()
+    now = datetime.now()
+    current_time = now.strftime("%H:%M")
+
+    # Only run logic at 15:00 and 21:00
+    if current_time not in REMINDER_SLOTS:
+        return
+
+    today_str = now.strftime("%Y-%m-%d")
+
+    # Fetch all incomplete todos for today
+    todos = await ndb.todos.find({
+        "date": today_str,
+        "checked": False
+    }).to_list(10_000)
+
+    if not todos:
+        logger.info(f"No incomplete todos for {today_str} at {current_time}")
+        return
+
+    # Group todos per user
+    pending_per_user: dict[str, int] = {}
+    for todo in todos:
+        uid = todo.get("uid")
+        if not uid:
+            continue
+        pending_per_user[uid] = pending_per_user.get(uid, 0) + 1
+
+    logger.info(
+        f"Found {len(pending_per_user)} users with incomplete todos "
+        f"for {today_str} at {current_time}"
+    )
+
+    for uid, count in pending_per_user.items():
+        # Get user (same pattern as your product reminders)
+        user = await ndb.users.find_one({"firebase_uid": uid})
+        if not user:
+            logger.warning(f"User {uid} not found for todo reminder")
+            continue
+
+        plural = "todos" if count > 1 else "todo"
+        message = (
+            f"You still have {count} {plural} left for today. "
+            "Complete them to maintain your streak!"
+        )
+
+        # Optional: avoid duplicates if something goes wrong / restarts
+        existing = await ndb.notifications.find_one({
+            "firebase_uid": uid,
+            "type": "todo_reminder",
+            "date": today_str,
+            "slot": current_time
+        })
+        if existing:
+            # Already sent this reminder for this slot and date
+            continue
+
+        await ndb.notifications.insert_one({
+            "firebase_uid": uid,
+            "title": "Todo Reminder",
+            "message": message,
+            "timestamp": datetime.utcnow(),
+            "read": False,
+            "type": "todo_reminder",
+            "date": today_str,   # for reference/debug
+            "slot": current_time # which slot (15:00 / 21:00)
+        })
+
+        print("todo reminder notification inserted")
+
 
 async def start_reminder_loop():
     """
@@ -70,5 +152,7 @@ async def start_reminder_loop():
         
         try:
             await check_reminders()
+            
+            await check_todo_reminders()
         except Exception as e:
             logger.error(f"Error in reminder loop: {e}")
