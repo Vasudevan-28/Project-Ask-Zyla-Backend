@@ -72,10 +72,16 @@ class Allergies(BaseModel):
     hasAllergies: bool
     details: Optional[str] = ""
 
+# class MenstrualCycle(BaseModel):
+#     hasMenstrualCycle: bool
+#     nextCycle: Optional[str] = None
+#     skinBehavior: Optional[str] = None
+#     reminders: Optional[bool] = None
+
 class MenstrualCycle(BaseModel):
     hasMenstrualCycle: bool
     nextCycle: Optional[str] = None
-    skinBehavior: Optional[str] = None
+    skinBehavior: List[str] = []    
     reminders: Optional[bool] = None
 
 class OtherSymptoms(BaseModel):
