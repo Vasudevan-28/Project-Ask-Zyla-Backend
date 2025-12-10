@@ -15,42 +15,8 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("zyla-backend")
 
-# DB CONFIG
-# MONGO_URI = "mongodb+srv://thukk_db:thuk@cluster0.5wsgjtp.mongodb.net/"
-# DB_NAME = "sett_samp"
-
-# PROFILE_COLL = "profile"
-# FEEDBACK_COLL = "feedback"
-# RATING_COLL = "rating"
-# SUPPORT_COLL = "support"
-
-
-# try:
-#     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-#     client.admin.command("ping")
-#     db = client[DB_NAME]
-#     profile_col = db[PROFILE_COLL]
-#     feedback_col = db[FEEDBACK_COLL]
-#     rating_col = db[RATING_COLL]
-#     support_col = db[SUPPORT_COLL]
-#     logger.info("Connected to MongoDB OK")
-# except Exception as e:
-#     logger.error(f"MongoDB connection failed: {e}")
-#     client = None
-#     profile_col = feedback_col = rating_col = support_col = None
-
-# FASTAPI APP
-# sett = FastAPI(title="Ask Zyla – Multi Collection (multi user)")
 sett = APIRouter(prefix="/settings")
 
-
-# sett.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=False,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 # MODELS
 
 class ProfileModel(BaseModel):
@@ -78,13 +44,6 @@ class SupportUpdate(BaseModel):
     message: str
 
 # HELPERS
-
-# def ensure_connected():
-#     if any(c is None for c in (profile_col, feedback_col, rating_col, support_col)):
-#         raise HTTPException(
-#             status_code=503,
-#             detail="Database unavailable. Check MongoDB connection.",
-#         )
 
 def serialize(doc: Dict[str, Any]) -> Dict[str, Any]:
     d = dict(doc)
@@ -268,20 +227,6 @@ async def update_feedback(payload: FeedbackUpdate, user: dict = Depends(auth_use
         "feedback": serialize(inserted),
     }
 
-# async def update_feedback(payload: FeedbackUpdate, user: dict = Depends(auth_user_fb)):
-#     spdb = await db()
-#     doc = get_or_create_feedback(user["uid"])
-#     doc_id = doc["_id"]
-#     try:
-#         await spdb.feedback_col.update_one(
-#             {"_id": doc_id}, {"$set": {"feedback": payload.feedback}}
-#         )
-#         updated = await spdb.feedback_col.find_one({"_id": doc_id})
-#     except PyMongoError as e:
-#         logger.error(f"feedback update/find error: {e}")
-#         raise HTTPException(status_code=503, detail="Database error")
-#     return {"message": "Feedback updated", "feedback": serialize(updated)}
-
 # -------- RATING --------
 
 @sett.get("/rating")
@@ -317,50 +262,12 @@ async def update_rating(payload: RatingUpdate, user: dict = Depends(auth_user_fb
     }
 
 
-# async def update_rating(payload: RatingUpdate, user: dict = Depends(auth_user_fb)):
-#     spdb = await db()
-#     if payload.rating < 1 or payload.rating > 5:
-#         raise HTTPException(status_code=400, detail="rating must be 1–5")
-#     doc = get_or_create_rating(user["uid"])
-#     doc_id = doc["_id"]
-#     try:
-#         await spdb.rating_col.update_one(
-#             {"_id": doc_id}, {"$set": {"rating": payload.rating}}
-#         )
-#         updated = await spdb.rating_col.find_one({"_id": doc_id})
-#     except PyMongoError as e:
-#         logger.error(f"rating update/find error: {e}")
-#         raise HTTPException(status_code=503, detail="Database error")
-#     return {
-#         "message": "Rating updated",
-#         "rating": serialize(updated),
-#     }
-
 # -------- SUPPORT --------
 
 @sett.get("/support")
 async def get_support(user: dict = Depends(auth_user_fb)):
     doc = get_or_create_support(user["uid"])
     return serialize(doc)
-
-# @sett.put("/support")
-# async def update_support(payload: SupportUpdate, user: dict = Depends(auth_user_fb)):
-#     spdb = await db()
-#     # doc = get_or_create_support(user["uid"])
-#     # doc_id = doc["_id"]
-#     try:
-#         await spdb.support_col.update_one(
-#             {"firebase_uid": user["uid"]}, {"$set": {"message": payload.message}},
-#             upsert=True
-#         )
-#         updated = await spdb.support_col.find_one({"firebase_uid": user["uid"]})
-#     except PyMongoError as e:
-#         logger.error(f"support update/find error: {e}")
-#         raise HTTPException(status_code=503, detail="Database error")
-#     return {
-#         "message": "Support message updated",
-#         "support": serialize(updated),
-#     }
 
 
 

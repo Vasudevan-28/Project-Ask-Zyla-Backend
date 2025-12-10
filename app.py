@@ -17,11 +17,11 @@ from chatAppRoute import chatApp
 
 from z_dashboard.products import prrouter
 from z_dashboard.todos import torouter
-from notifications import ntrouter
+from z_settings.notifications import ntrouter
 
-from clearCache import clearrt
+from z_settings.clearCache import clearrt
 
-from settings import sett
+from z_settings.settings import sett
 
 app = FastAPI()
 
@@ -147,7 +147,7 @@ class GoogleEmailCheck(BaseModel):
 
 
 
-from reminder_service import start_reminder_loop
+from z_settings.reminder_service import start_reminder_loop
 import asyncio
 
 @app.on_event("startup")

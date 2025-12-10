@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, HTTPException, Depends, Header, Response, APIRouter
+from fastapi import HTTPException, Depends, Header, Response, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -10,11 +10,8 @@ from groq import Groq
 from bson import ObjectId
 from z_chatbot_module.db import db, now_ts
 
-# from z_chatbot_module.chroma_lib import embed_texts, needs_recommendation, collection
 from z_chatbot_module.schemas import ConversationCreate, ChatRequest, ChatResponse, ProfilePatch, Profile, Favourites, SkinProfileWrapper, TrialChatRequest, TrialChatResponse
-# from auth import create_user_record, auth_user, UserCreate
-# from z_chatbot_module.fire_auth import create_user_record, auth_user, UserCreate
-# from z_chatbot_module.db import ensure_indexes
+
 from z_chatbot_module.memory import (
     create_conversation, touch_conversation, add_message, get_recent_messages,
     get_profile, patch_profile, list_conversations, list_archived_conversations, get_messages, put_favourites, get_favourites, delete_favorites
@@ -33,10 +30,6 @@ chatApp = APIRouter(prefix="/chatApp", tags=["chat app"])
 
 # chatApp.include_router(appAuth)
 
-# chatApp.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
-# )
 
 @chatApp.get("/testAPI")
 def testingApi():
@@ -48,21 +41,6 @@ class UserIn(BaseModel):
     email: str
     name: str = ""
 
-# @chatApp.on_event("startup")
-# async def _startup():
-#     await ensure_indexes()
-
-# @chatApp.post("/users", summary="Create a test user with API key")
-# async def create_user(u: UserCreate):
-#     return await create_user_record(u.name, u.email)
-
-# @chatApp.post("/usersfb")
-# async def create_user_fb(payload: UserIn, authorization: Optional[str] = Header(None)):
-#     token = _extract_bearer(authorization)
-#     decoded = verify_firebase_token_sync(token)
-#     if decoded.get("uid") != payload.uid:
-#         raise HTTPException(status_code=403, detail="Token UID does not match payload UID")
-#     return await create_user_record_fb(payload.uid, payload.email, payload.name)
 
 @chatApp.get("/me/profile", response_model=Profile)
 # async def me_profile(user=Depends(auth_user)):
@@ -136,22 +114,6 @@ async def conversations_delete(cid: str, user=Depends(auth_user_fb)):
 
 
 
-# @chatApp.get("/me/favorites")
-# # async def retrieve_favourites(user=Depends(auth_user)):
-# async def retrieve_favourites(user=Depends(auth_user_fb)):
-#     return await get_favourites(user["uid"])
-
-# @chatApp.post("/me/favorites")
-# # async def add_favourites(favs: Favourites, user=Depends(auth_user)):
-# async def add_favourites(favs: Favourites, user=Depends(auth_user_fb)):
-#     return await put_favourites(favs.model_dump(), user["uid"])
-
-# @chatApp.delete("/me/favorites")
-# # async def del_favorites(product_name: str, user=Depends(auth_user)):
-# async def del_favorites(product_name: str, user=Depends(auth_user_fb)):
-#     favs = {"product_name": product_name}  
-#     return await delete_favorites(favs, user["uid"])
-
 
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -175,121 +137,6 @@ SYSTEM_PROMPT = (
         "- No marketing tone. Just helpful and gentle.\n"
     )
 
-
-# def build_context_messages(profile: Dict[str, Any], summary: str, recent: List[Dict[str, str]]):
-#     msgs: List[Dict[str, str]] = []
-#     msgs.append({"role": "system", "content": "RULES:\n" + SYSTEM_PROMPT})
-
-#     p = profile or {}
-#     prof_lines = []
-#     if p.get("name"): prof_lines.append(f"Name: {p.get('name')}")
-#     if p.get("skin_type"): prof_lines.append(f"Skin type: {p.get('skin_type')}")
-#     if p.get("concerns"): prof_lines.append(f"Concerns: {', '.join(p.get('concerns'))}")
-#     if p.get("budget_max") is not None: prof_lines.append(f"Budget max: ₹{p.get('budget_max')}")
-#     if p.get("allergies"): prof_lines.append(f"Allergies: {', '.join(p.get('allergies'))}")
-#     if p.get("avoid_ingredients"): prof_lines.append(f"Avoid: {', '.join(p.get('avoid_ingredients'))}")
-#     if p.get("prefer_ingredients"): prof_lines.append(f"Prefer: {', '.join(p.get('prefer_ingredients'))}")
-#     if p.get("fragrance_free") is not None: prof_lines.append(f"Fragrance-free: {p.get('fragrance_free')}")
-#     if prof_lines:
-#         msgs.append({"role": "system", "content": "USER PROFILE:\n" + "\n".join(prof_lines)})
-#     if summary:
-#         msgs.append({"role": "system", "content": "CONVERSATION SUMMARY:\n" + summary})
-        
-#     msgs.extend(recent)
-    
-#     return msgs
-
-# def llm_reply(messages: List[Dict[str, str]], products, intent_recommend) -> str:
-    
-#     if intent_recommend and products:
-#         lines = []
-#         for p in products[:3]:
-#             md = p.get("metadata", {})
-#             name = md.get("name", "Unknown")
-#             price = md.get("price", "?")
-#             category = md.get("category", "")
-            
-#             url = md.get("url", "")
-#             if url and ( url.startswith("/")):
-#                 url_text = f"URL: {url}"
-#             else:
-#                 url_text = ""  
-
-#             ingreds = (md.get("clean_ingreds", "") or "")
-#             ingreds_short = ingreds[:120] + ("…" if len(ingreds) > 120 else "")
-#             lines.append(f"- {name} (₹{price}) | {category} | {ingreds_short} {url_text}".strip())
-
-#         context_products = "\n".join(lines)
-#     else:
-#         context_products = "NO_PRODUCTS"
-
-#     # kelvi = messages.append(context_block)
-    
-#     messages = messages + [{"role": "system", "content": context_products}]
-    
-#     if _groq:
-#         res = _groq.chat.completions.create(model=GROQ_MODEL, messages=messages, temperature=0.4, max_tokens=280)
-#         print(messages)
-#         return res.choices[0].message.content.strip()
-
-# @chatApp.post("/chat", response_model=ChatResponse)
-# async def chat(req: ChatRequest, user=Depends(auth_user)):
-    
-#     intent_reco = needs_recommendation(req.message)
-    
-#     hits = []
-#     if intent_reco:
-#         qvec = embed_texts([req.message])[0]
-
-#         results = collection.query(
-#             query_embeddings=[qvec],
-#             n_results=2,
-#         )
-
-#         if results and results.get("ids"):
-#             for i in range(len(results["ids"][0])):
-#                 hits.append({
-#                     "id": results["ids"][0][i],
-#                     "distance": results.get("distances", [[None]])[0][i],
-#                     "document": results.get("documents", [[None]])[0][i],
-#                     "metadata": results.get("metadatas", [[{}]])[0][i],
-#                 })
-    
-#     if not req.conversation_id:
-#         from memory import create_conversation
-#         cid = await create_conversation(user["uid"], "New chat")
-#     else:
-#         cid = req.conversation_id
-
-#     await add_message(user["uid"], cid, role="user", content=req.message)
-
-#     profile = await get_profile(user["uid"])
-#     summary = await get_summary(user["uid"], cid)
-#     recent = await get_recent_messages(cid, fallback_from_mongo=True)
-
-#     used = build_context_messages(profile, summary, recent)
-
-#     reply = llm_reply(used, hits, intent_reco and len(hits) > 0)
-
-#     await add_message(user["uid"], cid, role="assistant", content=reply)
-#     await touch_conversation(user["uid"], cid)
-
-#     all_msgs_full = await get_messages(user["uid"], cid)
-#     all_msgs = [{"role": m["role"], "content": m["content"]} for m in all_msgs_full]
-#     new_summary = await summarize_if_needed(user["uid"], cid, all_msgs)
-#     if new_summary:
-#         summary = new_summary
-
-#     return ChatResponse(
-#         conversation_id=cid,
-#         reply=reply,
-#         hits =hits,
-#         intent_recommend= bool(intent_reco),
-#         used_messages=used,
-#         profile_used=Profile(**profile),
-#         summary=summary or ""
-#     )
-    
 
 chat_app = build_chat_graph()
 
@@ -429,7 +276,7 @@ async def get_skin_profile(user_id: str):
     if not doc:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    cleared = doc.get("cleared", False)
+    # cleared = doc.get("cleared", False)
     
     # if cleared:
     #     raise HTTPException(status_code=404, detail="data is cleared")     

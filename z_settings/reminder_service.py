@@ -57,19 +57,15 @@ async def check_reminders():
 
 logger = logging.getLogger("uvicorn")
 
-REMINDER_SLOTS = ("15:00", "23:18")  # 3PM and 9PM
+REMINDER_SLOTS = ("15:00", "21:00")  
 
 
 async def check_todo_reminders():
-    """
-    At 15:00 and 21:00, find users with incomplete todos for today
-    and create a notification for them.
-    """
+ 
     ndb = await db()
     now = datetime.now()
     current_time = now.strftime("%H:%M")
 
-    # Only run logic at 15:00 and 21:00
     if current_time not in REMINDER_SLOTS:
         return
 
@@ -99,7 +95,6 @@ async def check_todo_reminders():
     )
 
     for uid, count in pending_per_user.items():
-        # Get user (same pattern as your product reminders)
         user = await ndb.users.find_one({"firebase_uid": uid})
         if not user:
             logger.warning(f"User {uid} not found for todo reminder")
@@ -111,7 +106,6 @@ async def check_todo_reminders():
             "Complete them to maintain your streak!"
         )
 
-        # Optional: avoid duplicates if something goes wrong / restarts
         existing = await ndb.notifications.find_one({
             "firebase_uid": uid,
             "type": "todo_reminder",
@@ -119,7 +113,6 @@ async def check_todo_reminders():
             "slot": current_time
         })
         if existing:
-            # Already sent this reminder for this slot and date
             continue
 
         await ndb.notifications.insert_one({
@@ -129,17 +122,15 @@ async def check_todo_reminders():
             "timestamp": datetime.utcnow(),
             "read": False,
             "type": "todo_reminder",
-            "date": today_str,   # for reference/debug
-            "slot": current_time # which slot (15:00 / 21:00)
+            "date": today_str,   
+            "slot": current_time 
         })
 
         print("todo reminder notification inserted")
 
 
 async def start_reminder_loop():
-    """
-    Starts the background loop to check for reminders every minute.
-    """
+ 
     logger.info("Starting reminder service loop...")
     print("Starting reminder service loop...")
     while True:

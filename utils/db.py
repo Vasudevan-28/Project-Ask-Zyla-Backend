@@ -12,8 +12,7 @@ _client: AsyncIOMotorClient | None = None
 def mongo() -> AsyncIOMotorClient:
     global _client
     if _client is None:
-        # _client = AsyncIOMotorClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017"), uuidRepresentation="standard")
-        _client = AsyncIOMotorClient("mongodb+srv://Nobita_arsenal22:NobiArsenal22@arsenal.gxivry5.mongodb.net/?appName=Arsenal", uuidRepresentation="standard")
+        _client = AsyncIOMotorClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017"), uuidRepresentation="standard")
     return _client
 
 db = mongo()["team_zyla"]
@@ -23,23 +22,6 @@ skin_col = db["skinData"]
 
 backup_users = bkdb["users_del"]
 
-
-# async def db():
-#     return mongo()[os.getenv("MONGODB_DB", "team_zyla_bk")]
-
-# async def ensure_indexes():
-#     d = await db()
-#     # users
-#     await d.users.create_index("uid", unique=True)
-#     await d.users.create_index("api_key", unique=True, sparse=True)
-#     # conversations
-#     await d.conversations.create_index([("uid", ASCENDING), ("updated_at", DESCENDING)])
-#     # messages
-#     await d.messages.create_index([("uid", ASCENDING), ("conversation_id", ASCENDING), ("created_at", ASCENDING)])
-#     # profiles
-#     await d.profiles.create_index("uid", unique=True)
-#     # summaries
-#     await d.summaries.create_index([("uid", ASCENDING), ("conversation_id", ASCENDING)], unique=True)
 
 from datetime import datetime
 

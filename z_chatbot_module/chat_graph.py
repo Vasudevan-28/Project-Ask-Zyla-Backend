@@ -38,25 +38,6 @@ def build_chat_graph():
     graph.add_edge("update_summary", END)
 
     return graph.compile()
-
-    # graph.add_node("detect_intent_and_retrieve", node_detect_intent_and_retrieve)
-    # graph.add_node("ensure_conversation", node_ensure_conversation)
-    # graph.add_node("store_user_message", node_store_user_message)
-    # graph.add_node("load_memory", node_load_memory)
-    # graph.add_node("generate_reply", node_generate_reply)
-    # graph.add_node("store_assistant_message", node_store_assistant_message)
-    # graph.add_node("update_summary", node_update_summary)
-
-    # graph.set_entry_point("detect_intent_and_retrieve")
-
-    # graph.add_edge("detect_intent_and_retrieve", "ensure_conversation")
-    # graph.add_edge("ensure_conversation", "store_user_message")
-    # graph.add_edge("store_user_message", "load_memory")
-    # graph.add_edge("load_memory", "generate_reply")
-    # graph.add_edge("generate_reply", "store_assistant_message")
-    # graph.add_edge("store_assistant_message", "update_summary")
-    # graph.add_edge("update_summary", END)
-    
     
 from z_chatbot_module.trial_nodes import ( trial_node_ensure_conversation, trial_node_generate_reply, trial_node_load_memory, trial_node_store_assistant_message, trial_node_store_user_message)
 from z_chatbot_module.graph_state import TrialChatState
