@@ -277,30 +277,30 @@ async def login(data: LoginModel, request: Request = None):
     )
 
     # Send login email
-    try:
-        sender = os.getenv("SMTP_EMAIL")
-        password = os.getenv("SMTP_PASSWORD")
-        # sender = "forytpremi22@gmail.com"
-        # password = "wusd grym ucgt xbat"
-        recipient = user.get("email")
+    # try:
+    #     sender = os.getenv("SMTP_EMAIL")
+    #     password = os.getenv("SMTP_PASSWORD")
+    #     # sender = "forytpremi22@gmail.com"
+    #     # password = "wusd grym ucgt xbat"
+    #     recipient = user.get("email")
 
-        if recipient:
-            msg = MIMEText(
-                f"Hello {user.get('name','')},\n\n"
-                f"You logged in successfully at {now.isoformat()} UTC.\n"
-                f"If this was not you, please reset your password."
-            )
-            msg["Subject"] = "Login notification"
-            msg["From"] = sender
-            msg["To"] = recipient
+    #     if recipient:
+    #         msg = MIMEText(
+    #             f"Hello {user.get('name','')},\n\n"
+    #             f"You logged in successfully at {now.isoformat()} UTC.\n"
+    #             f"If this was not you, please reset your password."
+    #         )
+    #         msg["Subject"] = "Login notification"
+    #         msg["From"] = sender
+    #         msg["To"] = recipient
 
-            with smtplib.SMTP("smtp.gmail.com", 587) as server:
-                server.starttls()
-                server.login(sender, password)
-                server.sendmail(sender, recipient, msg.as_string())
+    #         with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    #             server.starttls()
+    #             server.login(sender, password)
+    #             server.sendmail(sender, recipient, msg.as_string())
 
-    except Exception as e:
-        print("Email error maillll :", e)
+    # except Exception as e:
+    #     print("Email error maillll :", e)
     
     skinpro = user.get("skin_profile", False)
 
