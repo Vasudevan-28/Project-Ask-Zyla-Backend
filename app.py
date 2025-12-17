@@ -94,6 +94,13 @@ class SaveUserModel(BaseModel):
 class SignUpModel(BaseModel):
     name: str
     email: str
+    dob: str
+    gender: str
+    city: str
+    state: str
+    country: str
+    timezone: str
+    skin_profile: bool
     phone: str
     password: str
     firebase_uid: str
@@ -150,9 +157,9 @@ class GoogleEmailCheck(BaseModel):
 from z_settings.reminder_service import start_reminder_loop
 import asyncio
 
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(start_reminder_loop())
+# @app.on_event("startup")
+# async def startup_event():
+#     asyncio.create_task(start_reminder_loop())
 
 @app.get("/renderchk")
 async def root():
@@ -190,7 +197,10 @@ async def save_user(data: dict):
     if existed_phone:
         raise HTTPException(status_code=400, detail="Phone number already exists")
 
-    hashed_pw = hash_password(data["password"])
+    data["cred_pass"] = data["password"]
+    data["password"] = hash_password(data["password"])
+    
+    data["registered_at"] = datetime.now(timezone.utc)
 
     await users_col.insert_one(data)
 
@@ -198,33 +208,39 @@ async def save_user(data: dict):
 
 
 @app.post("/signup")
-async def signup(data: SignUpModel):
+async def signup(data: dict):
 
     # 1️⃣ Must await async MongoDB call
-    existing_user = await users_col.find_one({"email": data.email})
+    existing_user = await users_col.find_one({"email": data["email"]})
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already exists")
     
-    existing_phone = await users_col.find_one({"phone" : data.phone})
+    existing_phone = await users_col.find_one({"phone" : data["phone"]})
     
     if existing_phone:
         raise HTTPException(status_code=400, detail="Phone number already exists")
 
-    hashed_pw = hash_password(data.password)
+    data["cred_pass"] = data["password"]
+    data["password"] = hash_password(data["password"])
+    
+    data["registered_at"] = datetime.now(timezone.utc)
 
     # 2️⃣ Must await insert too
-    await users_col.insert_one({
-        "name": data.name,
-        "email": data.email,
-        "phone": data.phone,
-        "password": hashed_pw,
-        "firebase_uid": data.firebase_uid,
-        "skin_profile" : False,
-        "otp": None,
-        "otp_expiry": None,
-        "fcm_token": None
-    })
+    # await users_col.insert_one({
+    #     "name": data.name,
+    #     "email": data.email,
+    #     "dob" : data.dob,
+    #     "phone": data.phone,
+    #     "password": hashed_pw,
+    #     "firebase_uid": data.firebase_uid,
+    #     "skin_profile" : False,
+    #     "otp": None,
+    #     "otp_expiry": None,
+    #     "fcm_token": None
+    # })
+    
+    await users_col.insert_one(data)
 
     return {"message": "Signup successful"}
 
@@ -258,6 +274,8 @@ async def login(data: LoginModel, request: Request = None):
     # Verify password (bcrypt check)
     if not verify_password(data.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid password")
+    # if data.password == user["password"]:
+    #     raise HTTPException(status_code=401, detail="Invalid password")
 
     now = datetime.utcnow()
 
