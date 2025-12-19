@@ -43,13 +43,19 @@ app.include_router(ntrouter)
 app.include_router(clearrt, tags=["sensitive"])
 
 
+allowed_origins = [
+    "https://project-ask-zyla-live.vercel.app",
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -226,7 +232,7 @@ async def signup(data: dict):
     
     data["registered_at"] = datetime.now(timezone.utc)
 
-    # 2️⃣ Must await insert too
+    #  Must await insert too
     # await users_col.insert_one({
     #     "name": data.name,
     #     "email": data.email,

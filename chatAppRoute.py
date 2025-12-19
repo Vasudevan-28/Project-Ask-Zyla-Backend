@@ -43,7 +43,6 @@ class UserIn(BaseModel):
 
 
 @chatApp.get("/me/profile", response_model=Profile)
-# async def me_profile(user=Depends(auth_user)):
 async def me_profile(user=Depends(auth_user_fb)):
     prof = await get_profile(user["uid"])
     return Profile(**prof)
@@ -54,13 +53,11 @@ async def me_profile_put(patch: ProfilePatch, user=Depends(auth_user_fb)):
     return Profile(**prof)
 
 @chatApp.post("/conversations")
-# async def conversations_create(body: ConversationCreate, user=Depends(auth_user)):
 async def conversations_create(body: ConversationCreate, user=Depends(auth_user_fb)):
     cid = await create_conversation(user["uid"], body.title or "New chat")
     return {"id": cid}
 
 @chatApp.get("/conversations")
-# async def conversations_list(user=Depends(auth_user)):
 async def conversations_list(user=Depends(auth_user_fb)):
     return await list_conversations(user["uid"])
 
@@ -69,7 +66,6 @@ async def conversations_list_archived(user=Depends(auth_user_fb)):
     return await list_archived_conversations(user["uid"])
 
 @chatApp.get("/conversations/{conversation_id}/messages")
-# async def conversations_messages(conversation_id: str, user=Depends(auth_user)):
 async def conversations_messages(conversation_id: str, user=Depends(auth_user_fb)):
     return await get_messages(user["uid"], conversation_id)
 
@@ -240,7 +236,8 @@ async def trial_chat(
             value=session.guest_id,
             max_age=60 * 60 * 24 * 7, 
             httponly=True,
-            samesite="lax",
+            secure=True,
+            samesite="none",
         )
 
     uid = f"guest:{session.guest_id}"
