@@ -2,7 +2,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, Depends, Header, Response, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from groq import Groq
@@ -10,17 +10,15 @@ from groq import Groq
 from bson import ObjectId
 from z_chatbot_module.db import db, now_ts
 
-from z_chatbot_module.schemas import ConversationCreate, ChatRequest, ChatResponse, ProfilePatch, Profile, Favourites, SkinProfileWrapper, TrialChatRequest, TrialChatResponse
+from z_chatbot_module.schemas import ConversationCreate, ChatRequest, ChatResponse, ProfilePatch, Profile, SkinProfileWrapper, TrialChatRequest, TrialChatResponse
 
 from z_chatbot_module.memory import (
-    create_conversation, touch_conversation, add_message, get_recent_messages,
-    get_profile, patch_profile, list_conversations, list_archived_conversations, get_messages, put_favourites, get_favourites, delete_favorites
+    create_conversation, list_conversations, list_archived_conversations, get_messages, 
 )
-# from z_chatbot_module.summarizer import get_summary, summarize_if_needed
 from z_chatbot_module.chat_graph import build_chat_graph
-from z_chatbot_module._auth_firebase import create_user_record_fb, auth_user_fb, UserCreateFB, _extract_bearer, verify_firebase_token_sync
+from z_chatbot_module._auth_firebase import  auth_user_fb
 
-# from z_authentication_module.zyla_auth import appAuth
+
 
 load_dotenv()
 
@@ -36,21 +34,6 @@ def testingApi():
     return {"testing": "okay"}
 
 
-class UserIn(BaseModel):
-    uid: str
-    email: str
-    name: str = ""
-
-
-@chatApp.get("/me/profile", response_model=Profile)
-async def me_profile(user=Depends(auth_user_fb)):
-    prof = await get_profile(user["uid"])
-    return Profile(**prof)
-
-@chatApp.put("/me/profile", response_model=Profile)
-async def me_profile_put(patch: ProfilePatch, user=Depends(auth_user_fb)):
-    prof = await patch_profile(user["uid"], {k: v for k, v in patch.dict(exclude_unset=True).items()})
-    return Profile(**prof)
 
 @chatApp.post("/conversations")
 async def conversations_create(body: ConversationCreate, user=Depends(auth_user_fb)):
@@ -109,31 +92,6 @@ async def conversations_delete(cid: str, user=Depends(auth_user_fb)):
     return {"status": "deleted"}
 
 
-
-
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL")
-_groq = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
-
-
-
-SYSTEM_PROMPT = (
-    "You are a friendly skincare assistant named Zyla.\n"
-    "RULES:\n"
-        "- Keep responses short, warm, human.\n"
-        # "- You shouldn't answer for a coding question or general questions. You're only a skincare assistant. If user asks other than skincare, reply with `I don't know, i'm just a skincare assistant - In friendly way` \n"
-        "- Do NOT assume anything about the user's current skincare routine.\n"
-        "- Do NOT mention products unless product context is provided.\n"
-        "- NEVER invent product names, routines, ingredients, prices, or links.\n"
-        "- NEVER include external URLs.\n"
-        # "- If product context is NO_PRODUCTS: give general ingredients, routine tips ONLY.\n"
-        "- If products are provided: recommend 1–3 products MAX, strictly from the provided list.\n"
-        "- When recommending, mention only: name, price, type, key reason.\n"
-        "- No marketing tone. Just helpful and gentle.\n"
-    )
-
-
 chat_app = build_chat_graph()
 
 @chatApp.post("/chatgraph", response_model=ChatResponse)
@@ -151,11 +109,11 @@ async def chat(req: ChatRequest, user=Depends(auth_user_fb)):
     return ChatResponse(
         conversation_id=final_state["conversation_id"],
         reply=final_state["reply"],
-        intent_query = final_state["intent_query"],
-        hits=final_state.get("hits", []),
-        intent_recommend=bool(final_state.get("intent_recommend", False)),
+        # intent_query = final_state["intent_query"],
+        # hits=final_state.get("hits", []),
+        # intent_recommend=bool(final_state.get("intent_recommend", False)),
         used_messages=final_state.get("used_messages", []),
-        profile_used=Profile(**final_state.get("profile", {})),
+        # profile_used=Profile(**final_state.get("profile", {})),
         user_profile=final_state["user_profile"],
         summary=final_state.get("summary", "") or "",
     )

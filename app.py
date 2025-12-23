@@ -45,7 +45,7 @@ app.include_router(clearrt, tags=["sensitive"])
 
 allowed_origins = [
     "https://project-ask-zyla-live.vercel.app",
-    "http://localhost:3000"
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
@@ -216,7 +216,7 @@ async def save_user(data: dict):
 @app.post("/signup")
 async def signup(data: dict):
 
-    # 1️⃣ Must await async MongoDB call
+    #  Must await async MongoDB call
     existing_user = await users_col.find_one({"email": data["email"]})
 
     if existing_user:
@@ -398,9 +398,6 @@ async def send_email_otp(data: EmailRequest):
 
     sender = os.getenv("SMTP_EMAIL")
     password = os.getenv("SMTP_PASSWORD")
-
-    # sender = "forytpremi22@gmail.com"
-    # password = "wusd grym ucgt xbat"
     
     msg = MIMEText(f"Your OTP for resetting password is: {otp_code}\nValid for 3 minutes.")
     msg["Subject"] = "Beauty Sanctuary Email OTP"
@@ -415,10 +412,6 @@ async def send_email_otp(data: EmailRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Email error: {e}")
 
-
-        
-    
-    # Frontend uses otp_expiry for countdown
     return {"message": "OTP sent to email", "otp_expiry": expiry_dt.isoformat()}
 
 class PhoneRequest(BaseModel):
@@ -593,7 +586,6 @@ async def reset_password_email(data: ResetPasswordEmail):
         {"$set": {"password": hashed_pw, "otp": None, "otp_expiry": None}}
     )
 
-    # 4) Update Firebase Auth using Admin SDK (so client doesn't need to be signed-in)
     try:
         # Prefer stored firebase_uid if available
         firebase_uid = user.get("firebase_uid")

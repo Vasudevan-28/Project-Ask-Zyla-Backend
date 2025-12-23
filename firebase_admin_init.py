@@ -5,8 +5,6 @@ import logging
 import json
 import base64
 
-
-
 # firebase_config_json = os.getenv("FIREBASE_CONFIG")
 
 firebase_initialized = False

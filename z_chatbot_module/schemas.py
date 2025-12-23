@@ -26,11 +26,11 @@ class TrialChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     conversation_id: str
     reply: str
-    intent_query : str
-    hits: List[Dict[str, Any]] =  Field(default_factory=list)
-    intent_recommend: bool
+    # intent_query : str
+    # hits: List[Dict[str, Any]] =  Field(default_factory=list)
+    # intent_recommend: bool
     used_messages: List[Dict[str, Any]]
-    profile_used: Profile
+    # profile_used: Profile
     summary: str
     user_profile : Dict[str, Any]
     

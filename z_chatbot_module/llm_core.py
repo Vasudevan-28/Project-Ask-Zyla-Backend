@@ -44,28 +44,13 @@ Your mission: make skincare feel easy, comforting, and doable for the user.
 
 import json
 
-def build_context_messages(user_profile: Dict[str, Any], profile: Dict[str, Any], summary: str, recent: List[Dict[str, str]]):
+def build_context_messages(user_profile: Dict[str, Any], summary: str, recent: List[Dict[str, str]]):
     msgs: List[Dict[str, str]] = []
     msgs.append({"role": "system", "content": SYSTEM_PROMPT})
     
     up = user_profile or {}
     
-    user_profile_str = json.dumps(up)
-
-    p = profile or {}
-    prof_lines = []
-    # if p.get("name"): prof_lines.append(f"Name: {p.get('name')}")
-    # if p.get("skin_type"): prof_lines.append(f"Skin type: {p.get('skin_type')}")
-    # if p.get("concerns"): prof_lines.append(f"Concerns: {', '.join(p.get('concerns'))}")
-    # if p.get("budget_max") is not None: prof_lines.append(f"Budget max: ₹{p.get('budget_max')}")
-    # if p.get("allergies"): prof_lines.append(f"Allergies: {', '.join(p.get('allergies'))}")
-    # if p.get("avoid_ingredients"): prof_lines.append(f"Avoid: {', '.join(p.get('avoid_ingredients'))}")
-    # if p.get("prefer_ingredients"): prof_lines.append(f"Prefer: {', '.join(p.get('prefer_ingredients'))}")
-    # if p.get("fragrance_free") is not None: prof_lines.append(f"Fragrance-free: {p.get('fragrance_free')}")
-
-    # if prof_lines:
-    #     msgs.append({"role": "system", "content": "USER PROFILE:\n" + "\n".join(prof_lines)})
-    
+    user_profile_str = json.dumps(up)    
     msgs.append({"role": "system", "content": "USER DETAILED PROFILE:\n" + user_profile_str})
         
     if summary:
@@ -74,26 +59,28 @@ def build_context_messages(user_profile: Dict[str, Any], profile: Dict[str, Any]
     msgs.extend(recent)
     return msgs
 
-def llm_reply(messages: List[Dict[str, str]], products, intent_recommend: bool) -> str:
-    if intent_recommend and products:
-        lines = []
-        for p in products[:3]:
-            md = p.get("metadata", {})
-            name = md.get("name", "Unknown")
-            price = md.get("price", "?")
-            category = md.get("category", "")
-            url = md.get("url", "")
-            if url and url.startswith("/"):
-                url_text = f"URL: {url}"
-            else:
-                url_text = ""
-            ingreds = (md.get("clean_ingreds", "") or "")
-            ingreds_short = ingreds[:120] + ("…" if len(ingreds) > 120 else "")
-            lines.append(f"- {name} (₹{price}) | {category} | {ingreds_short} {url_text}".strip())
-        context_products = "\n".join(lines)
-    else:
-        context_products = "NO_PRODUCTS"
+# def llm_reply(messages: List[Dict[str, str]], products, intent_recommend: bool) -> str:
+def llm_reply(messages: List[Dict[str, str]]) -> str:
+    # if intent_recommend and products:
+    #     lines = []
+    #     for p in products[:3]:
+    #         md = p.get("metadata", {})
+    #         name = md.get("name", "Unknown")
+    #         price = md.get("price", "?")
+    #         category = md.get("category", "")
+    #         url = md.get("url", "")
+    #         if url and url.startswith("/"):
+    #             url_text = f"URL: {url}"
+    #         else:
+    #             url_text = ""
+    #         ingreds = (md.get("clean_ingreds", "") or "")
+    #         ingreds_short = ingreds[:120] + ("…" if len(ingreds) > 120 else "")
+    #         lines.append(f"- {name} (₹{price}) | {category} | {ingreds_short} {url_text}".strip())
+    #     context_products = "\n".join(lines)
+    # else:
+    #     context_products = "NO_PRODUCTS"
 
+    context_products = "NO_PRODUCTS"
     messages = messages + [{"role": "system", "content": context_products}]
 
     if not _groq:
@@ -127,7 +114,7 @@ Rules:
 - Use title case
 - Must describe the topic, not repeat message text verbatim
 
-Return ONLY the title.
+Return ONLY the meaningful title.
 """
 
     msg_list = [{"role": "system", "content": TITLE_PROMPT}]

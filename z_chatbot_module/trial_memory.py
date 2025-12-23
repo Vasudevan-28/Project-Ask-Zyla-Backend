@@ -67,5 +67,6 @@ async def get_messages(uid: str, conversation_id: str) -> List[Dict[str, Any]]:
     cur = d.messages.find({"conversation_id": ObjectId(conversation_id), "uid": uid}).sort("created_at", 1)
     out = []
     async for m in cur:
-        out.append({"id": str(m["_id"]), "role": m["role"], "content": m["content"], "hits": m["hits"], "created_at": m["created_at"]})
+        # out.append({"id": str(m["_id"]), "role": m["role"], "content": m["content"], "hits": m["hits"], "created_at": m["created_at"]})
+        out.append({"id": str(m["_id"]), "role": m["role"], "content": m["content"],"created_at": m["created_at"]})
     return out

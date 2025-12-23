@@ -6,14 +6,14 @@ class ChatState(TypedDict, total=False):
     message: str
 
     # from intent + RAG
-    intent_recommend: bool
-    intent: bool
-    intent_query: str
-    hits: List[Dict[str, Any]]
+    # intent_recommend: Optional[bool]
+    # intent: Optional[bool]
+    # intent_query: Optional[str]
+    # hits: Optional[List[Dict[str, Any]]]
 
     # memory
     user_profile: Dict[str, Any]
-    profile: Dict[str, Any]
+    # profile: Dict[str, Any]
     summary: str
     recent_messages: List[Dict[str, str]]
     

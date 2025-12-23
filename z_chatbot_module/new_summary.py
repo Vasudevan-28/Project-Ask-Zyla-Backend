@@ -170,10 +170,6 @@ async def summarize_conversation_if_needed(
 #     doc = await d.user_profiles.find_one({"uid": uid})
 #     return doc.get("profile", {}) if doc else {}
 
-async def get_user_profile(uid: str) -> Dict[str, Any]: 
-    d = await db()
-    doc = await d.user_profiles.find_one({"uid": uid})
-    return doc.get("profile", {}) if doc else {}
 
 async def get_user_skin_profile(uid: str) -> Dict[str, Any]: 
     d = await db()
@@ -199,7 +195,7 @@ async def update_user_profile_from_summary(
     conversation_summary: str,
 ) -> Dict[str, Any]:
 
-    existing_profile = await get_user_profile(uid)
+    existing_profile = await get_user_skin_profile(uid)
 
     if not conversation_summary:
         return existing_profile

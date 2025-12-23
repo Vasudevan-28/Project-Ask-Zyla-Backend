@@ -11,7 +11,6 @@ async def node_ensure_conversation(state: Dict[str, Any]) -> Dict[str, Any]:
 
     if not cid:
         cid = await create_conversation(uid, "New chat")
-
     return {"conversation_id": cid}
 
 
@@ -21,14 +20,14 @@ async def node_store_user_message(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
     cid = state["conversation_id"]
     msg = state["message"]
-    hits = []
-    await add_message(uid=uid, conversation_id=cid, role="user", content=msg, hits=hits)
+    # hits = []
+    await add_message(uid=uid, conversation_id=cid, role="user", content=msg)
     return {}
 
 
-from z_chatbot_module.memory import get_profile, get_recent_messages
+from z_chatbot_module.memory import  get_recent_messages
 # from summarizer import get_summary
-from z_chatbot_module.new_summary import get_summary, get_user_profile, get_user_skin_profile
+from z_chatbot_module.new_summary import get_summary,  get_user_skin_profile
 
 async def node_load_memory(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
@@ -38,13 +37,13 @@ async def node_load_memory(state: Dict[str, Any]) -> Dict[str, Any]:
     user_profile = await get_user_skin_profile(uid)
     print(user_profile)
     print("---------------------------------------------------------------------")
-    profile = await get_profile(uid)
+    # profile = await get_profile(uid)
     summary = await get_summary(uid, cid)
     recent = await get_recent_messages(cid, fallback_from_mongo=True)
 
     return {
         "user_profile": user_profile,
-        "profile": profile,
+        # "profile": profile,
         "summary": summary,
         "recent_messages": recent,
     }
@@ -100,15 +99,16 @@ async def node_detect_intent_and_retrieve(state: Dict[str, Any]) -> Dict[str, An
 from z_chatbot_module.llm_core import build_context_messages, llm_reply
 
 async def node_generate_reply(state: Dict[str, Any]) -> Dict[str, Any]:
-    profile = state["profile"]
+    # profile = state["profile"]
     user_profile = state["user_profile"]
     summary = state.get("summary", "")
     recent = state.get("recent_messages", [])
-    hits = state.get("hits", [])
-    intent_recommend = bool(state.get("intent_recommend"))
+    # hits = state.get("hits", [])
+    # intent_recommend = bool(state.get("intent_recommend"))
 
-    used_messages = build_context_messages(user_profile, profile, summary, recent)
-    reply = llm_reply(used_messages, hits, intent_recommend and len(hits) > 0)
+    used_messages = build_context_messages(user_profile, summary, recent)
+    # reply = llm_reply(used_messages, hits, intent_recommend and len(hits) > 0)
+    reply = llm_reply(used_messages)
 
     return {
         "used_messages": used_messages,
@@ -122,9 +122,10 @@ async def node_store_assistant_message(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
     cid = state["conversation_id"]
     reply = state["reply"]
-    hits = state["hits"] if state["hits"] else []
+    # hits = state["hits"] if state["hits"] else []
 
-    await add_message(uid=uid, conversation_id=cid, hits=hits, role="assistant", content=reply)
+    # await add_message(uid=uid, conversation_id=cid, hits=hits, role="assistant", content=reply)
+    await add_message(uid=uid, conversation_id=cid, role="assistant", content=reply)
     conv = await touch_conversation(uid, cid)
     
     print("TITLE FROM DB: ", conv["title"])
