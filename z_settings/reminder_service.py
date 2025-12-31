@@ -13,7 +13,10 @@ async def check_reminders():
     and sends email notifications.
     """
     ndb = await db()
-    now = datetime.now().strftime("%H:%M")
+    # now = datetime.now().strftime("%H:%M")
+    now = datetime.utcnow().strftime("%H:%M")
+    logger.info(f"Server time is {datetime.now().isoformat()}")
+
     
     # Find products with matching reminder_time
     # We might want to optimize this index later
