@@ -160,12 +160,30 @@ class GoogleEmailCheck(BaseModel):
 
 
 
-from z_settings.reminder_service import start_reminder_loop
-import asyncio
+# from z_settings.reminder_service import start_reminder_loop
+
+from  z_settings.reminder_service import check_reminders, check_todo_reminders
+from fastapi import Header
 
 # @app.on_event("startup")
 # async def startup_event():
 #     asyncio.create_task(start_reminder_loop())
+
+
+CRON_SECRET = os.getenv("CRON_SECRET")
+
+@app.post("/internal/run-reminders")
+async def run_reminders(x_cron_secret: str = Header(None)):
+    if not CRON_SECRET:
+        raise HTTPException(500, "Cron secret not configured")
+
+    if x_cron_secret != CRON_SECRET:
+        raise HTTPException(403, "Forbidden")
+
+    await check_reminders()
+    await check_todo_reminders()
+
+    return {"status": "ok"}
 
 @app.get("/renderchk")
 async def root():
