@@ -7,85 +7,85 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
-# async def check_reminders():
-#     """
-#     Checks for products with a reminder_time matching the current time
-#     and sends email notifications.
-#     """
-#     ndb = await db()
-#     now = datetime.now().strftime("%H:%M")
-    
-#     # Find products with matching reminder_time
-#     # We might want to optimize this index later
-#     products = await ndb.products.find({"reminder_time": now}).to_list(1000)
-    
-#     if products:
-#         logger.info(f"Found {len(products)} reminders for {now}")
-        
-#     for product in products:
-#         uid = product.get("uid")
-#         if not uid:
-#             continue
-            
-#         # Get user to find email
-#         user = await ndb.users.find_one({"firebase_uid": uid})
-#         if user :
-#             product_name = product.get("name", "Routine Item")
-#             # email = user["email"]
-#             # subject = f"Reminder: {product_name}"
-#             # body = f"It's time for your routine: {product_name}\n\n{product.get('desc', '')}"
-            
-#             # await send_email(email, subject, body)
-
-#             # Create notification
-#             await ndb.notifications.insert_one({
-#                 "firebase_uid": uid,
-#                 "title": "Routine Reminder",
-#                 "message": f"It's time for: {product_name}",
-#                 "timestamp": datetime.utcnow(),
-#                 "read": False,
-#                 "type": "reminder"
-#             })
-            
-#             print("notifications updated")
-#         else:
-#             if not user:
-#                 logger.warning(f"User {uid} not found for product {product.get('_id')}")
-#             elif not user.get("email"):
-#                 logger.debug(f"User {uid} has no email set. Skipping reminder.")
-
-
 async def check_reminders():
+    """
+    Checks for products with a reminder_time matching the current time
+    and sends email notifications.
+    """
     ndb = await db()
-    now = datetime.utcnow().strftime("%H:%M")
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
-
+    now = datetime.now().strftime("%H:%M")
+    
+    # Find products with matching reminder_time
+    # We might want to optimize this index later
     products = await ndb.products.find({"reminder_time": now}).to_list(1000)
-
+    
+    if products:
+        logger.info(f"Found {len(products)} reminders for {now}")
+        
     for product in products:
         uid = product.get("uid")
         if not uid:
             continue
+            
+        # Get user to find email
+        user = await ndb.users.find_one({"firebase_uid": uid})
+        if user :
+            product_name = product.get("name", "Routine Item")
+            # email = user["email"]
+            # subject = f"Reminder: {product_name}"
+            # body = f"It's time for your routine: {product_name}\n\n{product.get('desc', '')}"
+            
+            # await send_email(email, subject, body)
 
-        existing = await ndb.notifications.find_one({
-            "firebase_uid": uid,
-            "type": "reminder",
-            "source_id": str(product["_id"]),
-            "date": today_str
-        })
-        if existing:
-            continue
+            # Create notification
+            await ndb.notifications.insert_one({
+                "firebase_uid": uid,
+                "title": "Routine Reminder",
+                "message": f"It's time for: {product_name}",
+                "timestamp": datetime.utcnow(),
+                "read": False,
+                "type": "reminder"
+            })
+            
+            print("notifications updated")
+        else:
+            if not user:
+                logger.warning(f"User {uid} not found for product {product.get('_id')}")
+            elif not user.get("email"):
+                logger.debug(f"User {uid} has no email set. Skipping reminder.")
 
-        await ndb.notifications.insert_one({
-            "firebase_uid": uid,
-            "title": "Routine Reminder",
-            "message": f"It's time for: {product.get('name','Routine Item')}",
-            "timestamp": datetime.utcnow(),
-            "read": False,
-            "type": "reminder",
-            "source_id": str(product["_id"]),
-            "date": today_str
-        })
+
+# async def check_reminders():
+#     ndb = await db()
+#     now = datetime.utcnow().strftime("%H:%M")
+#     today_str = datetime.utcnow().strftime("%Y-%m-%d")
+
+#     products = await ndb.products.find({"reminder_time": now}).to_list(1000)
+
+#     for product in products:
+#         uid = product.get("uid")
+#         if not uid:
+#             continue
+
+#         existing = await ndb.notifications.find_one({
+#             "firebase_uid": uid,
+#             "type": "reminder",
+#             "source_id": str(product["_id"]),
+#             "date": today_str
+#         })
+#         if existing:
+#             continue
+
+#         await ndb.notifications.insert_one({
+#             "firebase_uid": uid,
+#             "title": "Routine Reminder",
+#             "message": f"It's time for: {product.get('name','Routine Item')}",
+#             "timestamp": datetime.utcnow(),
+#             "read": False,
+#             "type": "reminder",
+#             "source_id": str(product["_id"]),
+#             "date": today_str
+#         })
                 
 
 logger = logging.getLogger("uvicorn")
