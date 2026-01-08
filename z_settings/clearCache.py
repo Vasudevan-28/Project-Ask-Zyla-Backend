@@ -2,7 +2,7 @@
 from utils.db import db, bkdb
 from datetime import datetime
 from typing import Dict, Any, List
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from z_chatbot_module._auth_firebase import auth_user_fb
@@ -10,7 +10,7 @@ from z_chatbot_module._auth_firebase import auth_user_fb
 main_db = db
 archive_db = bkdb
 
-clearrt = APIRouter(prefix='/sensitive')
+clear_router = APIRouter(prefix='/sensitive')
 
 COLLECTION_FILTERS = {
     "conversations": lambda uid: {"uid": uid},
@@ -96,7 +96,7 @@ async def clear_skin_data(uid: str) -> Dict[str, int]:
     }
 
 
-@clearrt.post("/clear_cache")
+@clear_router.post("/clear_cache")
 async def clear_cache(user=Depends(auth_user_fb)):
   
     uid = user["uid"]

@@ -7,6 +7,8 @@ from pydantic import BaseModel, EmailStr, Field
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from z_settings.sett_models import ProfileUpdate, FeedbackUpdate, RatingUpdate, SupportUpdate, GenSupport, FeedbackSubmit
+
 from z_chatbot_module._auth_firebase import auth_user_fb
 from z_chatbot_module.db import db
 from datetime import datetime
@@ -19,29 +21,14 @@ sett = APIRouter(prefix="/settings")
 
 # MODELS
 
-class ProfileModel(BaseModel):
-    name: str
-    age: int
-    email: EmailStr
-    phone_number: str
-    gender: str
-    address: Dict[str, Any] = Field(default_factory=dict)
+# class ProfileModel(BaseModel):
+#     name: str
+#     age: int
+#     email: EmailStr
+#     phone_number: str
+#     gender: str
+#     address: Dict[str, Any] = Field(default_factory=dict)
 
-class ProfileUpdate(BaseModel):
-    name: Optional[str] = None
-    age: Optional[int] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-
-class FeedbackUpdate(BaseModel):
-    name: str
-    feedback: str
-
-class RatingUpdate(BaseModel):
-    rating: int
-
-class SupportUpdate(BaseModel):
-    message: str
 
 # HELPERS
 
@@ -148,11 +135,6 @@ async def get_or_create_support(uid: str) -> Dict[str, Any]:
     default_doc["_id"] = result.inserted_id
     return default_doc
 
-# ROUTES
-
-@sett.get("/")
-def root():
-    return {"message": "API is running"}
 
 # -------- PROFILE --------
 
@@ -172,8 +154,10 @@ async def update_profile(payload: ProfileUpdate, user: dict = Depends(auth_user_
     update_fields: Dict[str, Any] = {}
     if payload.name is not None:
         update_fields["name"] = payload.name
-    if payload.age is not None:
+    if payload.dob is not None:
         update_fields["dob"] = payload.dob
+    if payload.gender is not None:
+        update_fields["gender"] = payload.gender
     if payload.city is not None:
         update_fields["city"] = payload.city
     if payload.state is not None:
@@ -296,13 +280,6 @@ async def update_support(payload: SupportUpdate, user: dict = Depends(auth_user_
     }
     
     
-from pydantic import BaseModel
-
-class GenSupport(BaseModel):
-    name: str
-    email: str
-    message: str
-    
 
 @sett.put("/general-support")
 async def update_general_support(payload: GenSupport):
@@ -328,9 +305,6 @@ async def update_general_support(payload: GenSupport):
     }
 
 
-class FeedbackSubmit(BaseModel):
-    emotion : int
-    emotionLabel : str
     
 from datetime import datetime
 
