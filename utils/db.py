@@ -26,5 +26,4 @@ backup_users = bkdb["users_del"]
 from datetime import datetime
 
 async def now_ts() -> float:
-    # return time.time()
     return str(datetime.now())

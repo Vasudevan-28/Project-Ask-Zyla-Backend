@@ -1,19 +1,13 @@
 from __future__ import annotations
-import os
-from typing import Any, Dict, List, Optional
-from fastapi import HTTPException, Depends, Header, Response, APIRouter
-# from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException, Depends, Response, APIRouter
 from dotenv import load_dotenv
-from pydantic import BaseModel
-from groq import Groq
-
 from bson import ObjectId
 from z_chatbot_module.db import db, now_ts
 
 from z_chatbot_module.schemas import ConversationCreate, ChatRequest, ChatResponse, ProfilePatch, Profile, SkinProfileWrapper, TrialChatRequest, TrialChatResponse
 
 from z_chatbot_module.memory import (
-    create_conversation, list_conversations, list_archived_conversations, get_messages, 
+    create_conversation, create_archive_conversation, list_conversations, list_archived_conversations, get_messages, 
 )
 from z_chatbot_module.chat_graph import build_chat_graph
 from z_chatbot_module._auth_firebase import  auth_user_fb
@@ -38,6 +32,11 @@ def testingApi():
 @chatApp.post("/conversations")
 async def conversations_create(body: ConversationCreate, user=Depends(auth_user_fb)):
     cid = await create_conversation(user["uid"], body.title or "New chat")
+    return {"id": cid}
+
+@chatApp.post("/archive/conversations")
+async def archive_conversations_create(body: ConversationCreate, user=Depends(auth_user_fb)):
+    cid = await create_archive_conversation(user["uid"], body.title or "New chat")
     return {"id": cid}
 
 @chatApp.get("/conversations")
@@ -75,7 +74,7 @@ async def conversations_archive(cid: str, user=Depends(auth_user_fb)):
     return {"status": "ok"}
 
 @chatApp.post("/conversations/{cid}/unArchive")
-async def conversations_archive(cid: str, user=Depends(auth_user_fb)):
+async def conversations_unarchive(cid: str, user=Depends(auth_user_fb)):
     d = await db()
     await d.conversations.update_one(
         {"_id": ObjectId(cid), "uid": user["uid"]},

@@ -41,6 +41,12 @@ async def create_conversation(uid: str, title: str) -> str:
     res = await d.conversations.insert_one({"uid": uid, "title": (title or "New chat")[:80], "archived": False, "created_at": now, "updated_at": now})
     return str(res.inserted_id)
 
+async def create_archive_conversation(uid: str, title: str) -> str:
+    d = await db()
+    now = await now_ts()
+    res = await d.conversations.insert_one({"uid": uid, "title": (title or "New chat")[:80], "archived": True, "created_at": now, "updated_at": now})
+    return str(res.inserted_id)
+
 async def touch_conversation(uid: str, conversation_id: str):
     d = await db()
     await d.conversations.update_one({"_id": ObjectId(conversation_id), "uid": uid}, {"$set": {"updated_at": await now_ts()}, "$inc": {"turns": 1}})
