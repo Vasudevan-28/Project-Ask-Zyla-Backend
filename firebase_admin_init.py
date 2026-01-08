@@ -5,6 +5,10 @@ import logging
 import json
 import base64
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # firebase_config_json = os.getenv("FIREBASE_CONFIG")
 
 firebase_initialized = False
