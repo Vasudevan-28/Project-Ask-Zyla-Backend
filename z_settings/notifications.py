@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
-# from ..database import get_database
 from z_chatbot_module.db import db
-# from .auth import get_current_user
-# from models import UserRead
 from z_chatbot_module._auth_firebase import auth_user_fb
 from bson import ObjectId
 
-ntrouter = APIRouter(prefix="/notifications", tags=["notifications"])
+notification_router = APIRouter()
 
-@ntrouter.get("/")
+@notification_router.get("/getAll")
 async def get_notifications(current_user = Depends(auth_user_fb)):
     ndb = await db()
     notifications = await ndb.notifications.find({"firebase_uid": current_user["uid"]}).sort("timestamp", -1).limit(50).to_list(50)
@@ -18,7 +15,7 @@ async def get_notifications(current_user = Depends(auth_user_fb)):
         del n["_id"]
     return notifications
 
-@ntrouter.patch("/{id}/read")
+@notification_router.patch("/{id}/read")
 async def mark_read(id: str, current_user = Depends(auth_user_fb) ):
     ndb = await db()
     result = await ndb.notifications.update_one(
@@ -29,7 +26,7 @@ async def mark_read(id: str, current_user = Depends(auth_user_fb) ):
         return {"message": "Notification not found"}
     return {"message": "Marked as read"}
 
-@ntrouter.patch("/read-all")
+@notification_router.patch("/read-all")
 async def mark_all_read(current_user = Depends(auth_user_fb)):
     ndb = await db()
     result = await ndb.notifications.update_many(
