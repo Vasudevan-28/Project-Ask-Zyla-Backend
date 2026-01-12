@@ -1,5 +1,6 @@
 from fastapi import HTTPException, APIRouter
-from utils.db import users_col
+# from utils.db import users_col
+from utils.db import get_db
 from utils.auth_helpers import hash_password
 from firebase_admin_init import *
 from firebase_admin import auth
@@ -10,6 +11,8 @@ signup_router = APIRouter()
 
 @signup_router.post("/signup")
 async def signup(data: dict):
+    db = get_db()
+    users_col = db["users"]
 
     #  Must await async MongoDB call
     existing_user = await users_col.find_one({"email": data["email"]})

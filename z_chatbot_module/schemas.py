@@ -19,9 +19,6 @@ class ChatRequest(BaseModel):
     conversation_id: Optional[str] = None
     message: str = Field(..., min_length=1)
     
-class TrialChatRequest(BaseModel):
-    conversation_id: Optional[str] = None
-    message: str = Field(..., min_length=1)
 
 class ChatResponse(BaseModel):
     conversation_id: str
@@ -34,17 +31,6 @@ class ChatResponse(BaseModel):
     summary: str
     user_profile : Dict[str, Any]
     
-class TrialChatResponse(BaseModel):
-    conversation_id: str
-    remaining_trials: int
-    reply : str
-    trials_exhausted: bool
-    
-class TrialUserChkResponse(BaseModel):
-    guest_id: str
-    remaining_trials: int
-    trials_exhausted: bool
-
 class ProfilePatch(BaseModel):
     name: Optional[str] = None
     skin_type: Optional[str] = None
@@ -56,51 +42,51 @@ class ProfilePatch(BaseModel):
     fragrance_free: Optional[bool] = None
 
 
-class Favourites(BaseModel):
-    # id  : Optional[str] = None
-    product_name : str
-    url : str
-    category : str
-    price : str
-    clean_ingreds : List[str]
+# class Favourites(BaseModel):
+#     # id  : Optional[str] = None
+#     product_name : str
+#     url : str
+#     category : str
+#     price : str
+#     clean_ingreds : List[str]
     
-class SkinProfileWrapper1(BaseModel):
-    skinProfileData: dict
+# class SkinProfileWrapper1(BaseModel):
+#     skinProfileData: dict
 
 
-class Allergies(BaseModel):
-    hasAllergies: bool
-    details: Optional[str] = ""
+# class Allergies(BaseModel):
+#     hasAllergies: bool
+#     details: Optional[str] = ""
+
+# # class MenstrualCycle(BaseModel):
+# #     hasMenstrualCycle: bool
+# #     nextCycle: Optional[str] = None
+# #     skinBehavior: Optional[str] = None
+# #     reminders: Optional[bool] = None
 
 # class MenstrualCycle(BaseModel):
 #     hasMenstrualCycle: bool
 #     nextCycle: Optional[str] = None
-#     skinBehavior: Optional[str] = None
+#     skinBehavior: List[str] = []    
 #     reminders: Optional[bool] = None
 
-class MenstrualCycle(BaseModel):
-    hasMenstrualCycle: bool
-    nextCycle: Optional[str] = None
-    skinBehavior: List[str] = []    
-    reminders: Optional[bool] = None
+# class OtherSymptoms(BaseModel):
+#     hasSymptoms: bool
+#     details: Optional[str] = ""
 
-class OtherSymptoms(BaseModel):
-    hasSymptoms: bool
-    details: Optional[str] = ""
-
-class SkinProfileData(BaseModel):
-    userId: str
+# class SkinProfileData(BaseModel):
+#     userId: str
    
-    concerns: List[str]
-    skinType: List[str]
-    skincareRoutine: str
-    allergies: Allergies
-    goals: List[str]
-    menstrualCycle: MenstrualCycle
-    otherSymptoms: OtherSymptoms
+#     concerns: List[str]
+#     skinType: List[str]
+#     skincareRoutine: str
+#     allergies: Allergies
+#     goals: List[str]
+#     menstrualCycle: MenstrualCycle
+#     otherSymptoms: OtherSymptoms
 
-class SkinProfileWrapper(BaseModel):
-    skinProfileData: SkinProfileData
+# class SkinProfileWrapper(BaseModel):
+#     skinProfileData: SkinProfileData
 
     
     

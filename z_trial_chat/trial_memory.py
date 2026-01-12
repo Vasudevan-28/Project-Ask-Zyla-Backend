@@ -2,23 +2,22 @@ from __future__ import annotations
 import json, time
 from typing import List, Dict, Any, Optional
 from bson import ObjectId
-from z_chatbot_module.db import db, now_ts
-from z_chatbot_module.redis_client import redis
+from utils.db import get_db, now_ts
+from utils.redis_client import redis
 
 RECENT_N = 8
 
 def redis_key_recent(conversation_id: str) -> str:
-    # return f"conv:{conversation_id}:recent"
     return f"trial_chat:{conversation_id}:recent"
 
 async def create_conversation(uid: str, title: str) -> str:
-    d = await db()
+    d = get_db()
     now = await now_ts()
     res = await d.conversations.insert_one({"uid": uid, "title": (title or "New chat")[:80], "archived": False, "created_at": now, "updated_at": now})
     return str(res.inserted_id)
 
 async def touch_conversation(uid: str, conversation_id: str):
-    d = await db()
+    d = get_db()
     await d.conversations.update_one({"_id": ObjectId(conversation_id), "uid": uid}, {"$set": {"updated_at": await now_ts()}, "$inc": {"turns": 1}})
     conv = await d.conversations.find_one({"_id": ObjectId(conversation_id), "uid": uid})
     turns = conv.get("turns", 0)
@@ -29,7 +28,7 @@ async def touch_conversation(uid: str, conversation_id: str):
     }
 
 async def add_message(uid: str, conversation_id: str, role: str, content: str) -> str:
-    d = await db()
+    d = get_db()
     doc = {"uid": uid, "conversation_id": ObjectId(conversation_id), "role": role, "content": content, "created_at": await now_ts()}
     res = await d.messages.insert_one(doc)
     
@@ -47,7 +46,7 @@ async def get_recent_messages(conversation_id: str, fallback_from_mongo: bool = 
     if not fallback_from_mongo:
         return []
 
-    d = await db()
+    d = get_db()
     cur = d.messages.find({"conversation_id": ObjectId(conversation_id)}).sort("created_at", -1).limit(RECENT_N)
     out = []
     async for m in cur:
@@ -60,7 +59,7 @@ async def get_recent_messages(conversation_id: str, fallback_from_mongo: bool = 
     return out
 
 async def get_messages(uid: str, conversation_id: str) -> List[Dict[str, Any]]:
-    d = await db()
+    d = get_db()
     ok = await d.conversations.find_one({"_id": ObjectId(conversation_id), "uid": uid})
     if not ok:
         return []

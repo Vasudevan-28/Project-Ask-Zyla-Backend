@@ -2,7 +2,7 @@ from __future__ import annotations
 import os, textwrap, time
 from typing import Dict, Any, List
 from bson import ObjectId
-from z_chatbot_module.db import db, now_ts
+from utils.db import get_db, now_ts
 # from z_chatbot_module.auth import AUTH_MODE
 from groq import Groq
 
@@ -29,12 +29,12 @@ Keep it under 1200 characters. No product hallucinations. Return plain text bull
 """
 
 async def get_summary(uid: str, conversation_id: str) -> str:
-    d = await db()
+    d = get_db()
     doc = await d.summaries.find_one({"uid": uid, "conversation_id": ObjectId(conversation_id)})
     return doc.get("summary", "") if doc else ""
 
 async def set_summary(uid: str, conversation_id: str, summary: str, turns: int):
-    d = await db()
+    d = get_db()
     now = await now_ts()
     await d.summaries.update_one(
         {"uid": uid, "conversation_id": ObjectId(conversation_id)},
@@ -45,7 +45,7 @@ async def set_summary(uid: str, conversation_id: str, summary: str, turns: int):
 
 async def summarize_if_needed(uid: str, conversation_id: str, all_messages: List[Dict[str, str]]) -> str:
 
-    d = await db()
+    d = get_db()
     doc = await d.summaries.find_one({"uid": uid, "conversation_id": ObjectId(conversation_id)})
     turns = int(doc.get("turns", 0)) if doc else 0
 

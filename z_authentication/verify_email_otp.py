@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, APIRouter
 from authModels import EmailOtpVerify
-from utils.db import users_col
+# from utils.db import users_col
+from utils.db import get_db
 from firebase_admin_init import *
 from z_authentication.timezone_helper import make_tz_aware, IST
 from datetime import datetime
@@ -9,6 +10,9 @@ verify_otp_router = APIRouter()
 
 @verify_otp_router.post("/verify-email-otp")
 async def verify_email_otp(data: EmailOtpVerify):
+    db = get_db()
+    users_col = db["users"]
+
     user = await users_col.find_one({"email": data.email})
     if not user:
         raise HTTPException(status_code=404, detail="Email not found")

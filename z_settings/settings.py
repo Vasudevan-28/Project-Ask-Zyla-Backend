@@ -9,8 +9,8 @@ from pymongo.errors import PyMongoError
 
 from z_settings.sett_models import ProfileUpdate, FeedbackUpdate, RatingUpdate, SupportUpdate, GenSupport, FeedbackSubmit
 
-from z_chatbot_module._auth_firebase import auth_user_fb
-from z_chatbot_module.db import db
+from utils._auth_firebase import auth_user_fb
+from utils.db import get_db
 from datetime import datetime
 
 # LOGGING
@@ -44,7 +44,7 @@ def serialize(doc: Dict[str, Any]) -> Dict[str, Any]:
 async def get_or_create_profile(uid: str) -> Dict[str, Any]:
     # ensure_connected()
     
-    spdb = await db()
+    spdb = get_db()
     
     try:
         doc = await spdb.users.find_one({"firebase_uid": uid})  # type: ignore
@@ -80,7 +80,7 @@ async def get_or_create_profile(uid: str) -> Dict[str, Any]:
 
 async def get_or_create_feedback(uid: str) -> Dict[str, Any]:
     # ensure_connected()
-    spdb = await db()
+    spdb = get_db()
     try:
         doc = await spdb.feedback_col.find_one({"firebase_uid": uid})  # type: ignore
     except PyMongoError as e:
@@ -99,7 +99,7 @@ async def get_or_create_feedback(uid: str) -> Dict[str, Any]:
 
 async def get_or_create_rating(uid: str) -> Dict[str, Any]:
     # ensure_connected()
-    spdb = await db()
+    spdb = get_db()
     try:
         doc = await spdb.rating_col.find_one({"firebase_uid": uid})  # type: ignore
     except PyMongoError as e:
@@ -118,7 +118,7 @@ async def get_or_create_rating(uid: str) -> Dict[str, Any]:
 
 async def get_or_create_support(uid: str) -> Dict[str, Any]:
     # ensure_connected()
-    spdb = await db()
+    spdb = get_db()
     try:
         doc = support_col.find_one({"firebase_uid": uid})  # type: ignore
     except PyMongoError as e:
@@ -147,7 +147,7 @@ async def get_profile(user: dict = Depends(auth_user_fb)):
 
 @sett.put("/profile")
 async def update_profile(payload: ProfileUpdate, user: dict = Depends(auth_user_fb)):
-    spdb = await db()
+    spdb = get_db()
     doc = await get_or_create_profile(user["uid"])
     user_id = doc["_id"]
 
@@ -189,7 +189,7 @@ async def get_feedback(user: dict = Depends(auth_user_fb)):
 @sett.put("/feedback")
 
 async def update_feedback(payload: FeedbackUpdate, user: dict = Depends(auth_user_fb)):
-    spdb = await db()
+    spdb = get_db()
 
     doc = {
         "uid": user["uid"],
@@ -221,7 +221,7 @@ async def get_rating(user: dict = Depends(auth_user_fb)):
 @sett.put("/rating")
 
 async def update_rating(payload: RatingUpdate, user: dict = Depends(auth_user_fb)):
-    spdb = await db()
+    spdb = get_db()
 
     if not (1 <= payload.rating <= 5):
         raise HTTPException(status_code=400, detail="rating must be 1–5")
@@ -257,7 +257,7 @@ async def get_support(user: dict = Depends(auth_user_fb)):
 
 @sett.put("/support")
 async def update_support(payload: SupportUpdate, user: dict = Depends(auth_user_fb)):
-    spdb = await db()
+    spdb = get_db()
 
     doc = {
         "uid": user["uid"],
@@ -283,7 +283,7 @@ async def update_support(payload: SupportUpdate, user: dict = Depends(auth_user_
 
 @sett.put("/general-support")
 async def update_general_support(payload: GenSupport):
-    spdb = await db()
+    spdb = get_db()
 
     doc = {
         "name": payload.name,
@@ -311,7 +311,7 @@ from datetime import datetime
 @sett.post('/feedback-submit')
 async def submitFeedback(payload : FeedbackSubmit, user : dict = Depends(auth_user_fb)):
     uid = user["uid"]
-    spdb = await db()
+    spdb = get_db()
     
     doc = {
          "firebase_uid" : uid,

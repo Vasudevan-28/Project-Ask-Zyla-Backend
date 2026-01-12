@@ -22,6 +22,10 @@ from z_settings.clearCache import clear_router
 from z_settings.settings import sett
 from z_authentication import auth_router
 
+from z_skinprofile.skinprofile import skinpro_router
+
+from z_trial_chat.trialchat import trial_chat_router
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -31,6 +35,8 @@ app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(chatApp)
+app.include_router(trial_chat_router)
+app.include_router(skinpro_router, tags=["skinprofile"])
 app.include_router(prrouter, tags=["products"])
 app.include_router(torouter, tags=["todos"])
 app.include_router(sett, tags=["settings"])

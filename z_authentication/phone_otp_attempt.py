@@ -1,6 +1,7 @@
 from fastapi import HTTPException, APIRouter
 from authModels import  PhoneOtpAttempt
-from utils.db import users_col
+# from utils.db import users_col
+from utils.db import get_db
 from z_authentication.timezone_helper import make_tz_aware, IST
 
 from datetime import datetime, timedelta
@@ -9,6 +10,9 @@ ph_otp_attempt_router = APIRouter()
 
 @ph_otp_attempt_router.post("/phone-otp-attempt")
 async def phone_otp_attempt(data: PhoneOtpAttempt):
+    db = get_db()
+    users_col = db["users"]
+
     user = await users_col.find_one({"phone": data.phone})
     if not user:
         raise HTTPException(status_code=404, detail="Phone number not found")

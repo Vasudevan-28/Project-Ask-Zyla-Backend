@@ -1,9 +1,10 @@
 from typing import Dict, Any
 # from chroma_lib import embed_texts, needs_recommendation, collection, llm_intent_confirm
+from z_chatbot_module.memory import create_conversation, add_message, get_recent_messages, touch_conversation
+from z_chatbot_module.llm_core import build_context_messages, llm_reply, set_conversation_title
+from z_chatbot_module.new_summary import get_summary,  get_user_skin_profile
 
 DEFAULT_TOP_K = 2
-
-from z_chatbot_module.memory import create_conversation
 
 async def node_ensure_conversation(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
@@ -14,7 +15,6 @@ async def node_ensure_conversation(state: Dict[str, Any]) -> Dict[str, Any]:
     return {"conversation_id": cid}
 
 
-from z_chatbot_module.memory import add_message
 
 async def node_store_user_message(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
@@ -25,9 +25,6 @@ async def node_store_user_message(state: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
 
-from z_chatbot_module.memory import  get_recent_messages
-# from summarizer import get_summary
-from z_chatbot_module.new_summary import get_summary,  get_user_skin_profile
 
 async def node_load_memory(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
@@ -96,7 +93,7 @@ async def node_detect_intent_and_retrieve(state: Dict[str, Any]) -> Dict[str, An
     }
 
 
-from z_chatbot_module.llm_core import build_context_messages, llm_reply
+
 
 async def node_generate_reply(state: Dict[str, Any]) -> Dict[str, Any]:
     # profile = state["profile"]
@@ -116,8 +113,6 @@ async def node_generate_reply(state: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-from z_chatbot_module.memory import touch_conversation
-
 async def node_store_assistant_message(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
     cid = state["conversation_id"]
@@ -134,7 +129,7 @@ async def node_store_assistant_message(state: Dict[str, Any]) -> Dict[str, Any]:
         "title": conv["title"]
     }
 
-from z_chatbot_module.llm_core import set_conversation_title
+
 
 async def node_set_conversation_title(state: Dict[str, Any]) -> Dict[str, Any]:
 
@@ -156,40 +151,33 @@ async def node_set_conversation_title(state: Dict[str, Any]) -> Dict[str, Any]:
         return await set_conversation_title(state)
     
     return {}
-        
 
-# from memory import get_messages
-# from summarizer import summarize_if_needed
 
-# async def node_update_summary(state: Dict[str, Any]) -> Dict[str, Any]:
-#     uid = state["uid"]
-#     cid = state["conversation_id"]
-
-#     all_msgs_full = await get_messages(uid, cid)
-#     all_msgs = [{"role": m["role"], "content": m["content"]} for m in all_msgs_full]
-#     new_summary = await summarize_if_needed(uid, cid, all_msgs)
-
-#     return {
-#         "summary": new_summary or state.get("summary", ""),
-#         "all_messages": all_msgs_full,
-#     }
 
 from typing import Dict, Any
-from z_chatbot_module.memory import get_messages
+from z_chatbot_module.memory import get_messages, get_messages_for_summary_window
 from z_chatbot_module.new_summary import (
     summarize_conversation_if_needed,
-    update_user_profile_from_summary,
 )
+
+
+def should_summarize(turns: int) -> bool:
+    return turns > 0 and turns % 8 == 0
 
 
 async def node_update_summary(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
     cid = state["conversation_id"]
+    turns = state.get("turns", 0)
 
-    all_msgs_full = await get_messages(uid, cid)
-    chat_msgs = [{"role": m["role"], "content": m["content"]} for m in all_msgs_full]
+    if not should_summarize(turns):
+       return state  
 
-    new_summary = await summarize_conversation_if_needed(uid, cid, chat_msgs)
+    all_msgs_full = await get_messages_for_summary_window(uid, cid, turns)
+    # all_msgs_full = await get_messages(uid, cid)
+    # chat_msgs = [{"role": m["role"], "content": m["content"]} for m in all_msgs_full]
+
+    new_summary = await summarize_conversation_if_needed(uid, cid, all_msgs_full, turns)
 
     # updated_profile = await update_user_profile_from_summary(uid, new_summary)
 

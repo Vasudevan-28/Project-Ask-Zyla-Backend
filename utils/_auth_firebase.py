@@ -11,7 +11,8 @@ import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN, HTTP_500_INTERNAL_SERVER_ERROR
 
-from z_chatbot_module.memory import db
+# from z_chatbot_module.memory import db
+from utils.db import get_db
 
 import base64
 
@@ -62,7 +63,7 @@ async def auth_user_fb(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token payload: missing uid")
 
     try:
-        fdb = await db()
+        fdb = get_db()
         now = datetime.now(timezone.utc).isoformat()
         doc = {
             "uid": uid,
@@ -82,7 +83,7 @@ async def auth_user_fb(authorization: Optional[str] = Header(None)):
     return {"uid": uid, "email": decoded.get("email"), "name": decoded.get("name") or decoded.get("display_name")}
 
 async def create_user_record_fb(uid: str, email: str, name: str = "") -> Dict[str, Any]:
-    fdb = await db()
+    fdb = get_db()
     now = datetime.now(timezone.utc).isoformat()
     doc = {
         "uid": uid,

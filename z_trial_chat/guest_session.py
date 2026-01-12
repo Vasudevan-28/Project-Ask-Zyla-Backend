@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi import Cookie, Response, HTTPException, Depends
 from bson import ObjectId
-from z_chatbot_module.db import db, now_ts
+from utils.db import get_db, now_ts
 
 MAX_TRIAL_CHATS = 3
 
@@ -12,7 +12,7 @@ class TrialSession(BaseModel):
     remaining_trials: int
     
 async def get_trial_session(trial_id: Optional[str] = Cookie(None)) -> TrialSession:
-    d = await db()
+    d = get_db()
 
     guest_doc = None
     

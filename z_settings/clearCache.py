@@ -1,14 +1,15 @@
 
-from utils.db import db, bkdb
+# from utils.db import db, bkdb
+from utils.db import get_db, get_bkdb
 from datetime import datetime
 from typing import Dict, Any, List
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from z_chatbot_module._auth_firebase import auth_user_fb
+from utils._auth_firebase import auth_user_fb
 
-main_db = db
-archive_db = bkdb
+main_db = get_db()
+archive_db = get_bkdb()
 
 clear_router = APIRouter(prefix='/sensitive')
 

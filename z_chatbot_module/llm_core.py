@@ -1,7 +1,11 @@
 from typing import Dict, Any, List
 from groq import Groq
 import os
+import json
 from dotenv import load_dotenv
+from utils.db import get_db
+from bson import ObjectId
+
 
 load_dotenv()
 
@@ -41,8 +45,6 @@ GENERAL RULES:
 
 Your mission: make skincare feel easy, comforting, and doable for the user.
 """
-
-import json
 
 def build_context_messages(user_profile: Dict[str, Any], summary: str, recent: List[Dict[str, str]]):
     msgs: List[Dict[str, str]] = []
@@ -94,9 +96,6 @@ def llm_reply(messages: List[Dict[str, str]]) -> str:
     )
     return res.choices[0].message.content.strip()
 
-from z_chatbot_module.db import db
-from bson import ObjectId
-
 async def set_conversation_title(state: Dict[str, Any]) -> Dict[str, Any]:
     uid = state["uid"]
     cid = state["conversation_id"]
@@ -130,7 +129,7 @@ Return ONLY the meaningful title.
     
     generated_title = title_gen.choices[0].message.content.strip()
     
-    cdb = await db()
+    cdb = get_db()
     
     await cdb.conversations.update_one({"_id": ObjectId(cid), "uid": uid}, {"$set": {"title": generated_title}})
     

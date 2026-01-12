@@ -2,8 +2,8 @@ from __future__ import annotations
 import json, time
 from typing import List, Dict, Any, Optional
 from bson import ObjectId
-from z_chatbot_module.db import db, now_ts
-from z_chatbot_module.redis_client import redis
+from utils.db import get_db, now_ts
+from utils.redis_client import redis
 
 RECENT_N = 8
 
@@ -12,43 +12,21 @@ def redis_key_recent(conversation_id: str) -> str:
     # return f"zyla_proto:{conversation_id}:recent"
     return f"team_zyla:{conversation_id}:recent"
 
-# async def get_profile(uid: str) -> Dict[str, Any]:
-#     d = await db()
-#     doc = await d.profiles.find_one({"uid": uid})
-#     if not doc:
-#         return {"name": None, "skin_type": None, "concerns": [], "allergies": [], "avoid_ingredients": [],
-#                 "prefer_ingredients": [], "budget_max": None, "fragrance_free": None}
-#     return doc.get("profile", {})
-
-# async def patch_profile(uid: str, patch: Dict[str, Any]) -> Dict[str, Any]:
-#     d = await db()
-#     current = await get_profile(uid)
-#     merged = {**current}
-#     for k, v in patch.items():
-#         if v is None:
-#             merged[k] = None
-#         elif isinstance(v, list):
-#             merged[k] = list(dict.fromkeys([x for x in v if x is not None and x != ""]))
-#         else:
-#             merged[k] = v
-#     now = await now_ts()
-#     await d.profiles.update_one({"uid": uid}, {"$set": {"profile": merged, "updated_at": now}, "$setOnInsert": {"uid": uid, "created_at": now}}, upsert=True)
-#     return merged
 
 async def create_conversation(uid: str, title: str) -> str:
-    d = await db()
+    d = get_db()
     now = await now_ts()
     res = await d.conversations.insert_one({"uid": uid, "title": (title or "New chat")[:80], "archived": False, "created_at": now, "updated_at": now})
     return str(res.inserted_id)
 
 async def create_archive_conversation(uid: str, title: str) -> str:
-    d = await db()
+    d = get_db()
     now = await now_ts()
     res = await d.conversations.insert_one({"uid": uid, "title": (title or "New chat")[:80], "archived": True, "created_at": now, "updated_at": now})
     return str(res.inserted_id)
 
 async def touch_conversation(uid: str, conversation_id: str):
-    d = await db()
+    d = get_db()
     await d.conversations.update_one({"_id": ObjectId(conversation_id), "uid": uid}, {"$set": {"updated_at": await now_ts()}, "$inc": {"turns": 1}})
     conv = await d.conversations.find_one({"_id": ObjectId(conversation_id), "uid": uid})
     turns = conv.get("turns", 0)
@@ -59,7 +37,7 @@ async def touch_conversation(uid: str, conversation_id: str):
     }
 
 async def add_message(uid: str, conversation_id: str, role: str, content: str) -> str:
-    d = await db()
+    d = get_db()
     # doc = {"uid": uid, "conversation_id": ObjectId(conversation_id), "hits" : hits, "role": role, "content": content, "created_at": await now_ts()}
     doc = {"uid": uid, "conversation_id": ObjectId(conversation_id),  "role": role, "content": content, "created_at": await now_ts()}
     res = await d.messages.insert_one(doc)
@@ -78,7 +56,7 @@ async def get_recent_messages(conversation_id: str, fallback_from_mongo: bool = 
     if not fallback_from_mongo:
         return []
 
-    d = await db()
+    d = get_db()
     cur = d.messages.find({"conversation_id": ObjectId(conversation_id)}).sort("created_at", -1).limit(RECENT_N)
     out = []
     async for m in cur:
@@ -91,7 +69,7 @@ async def get_recent_messages(conversation_id: str, fallback_from_mongo: bool = 
     return out
 
 async def list_conversations(uid: str) -> List[Dict[str, Any]]:
-    d = await db()
+    d = get_db()
     cur = d.conversations.find({"uid": uid, "archived": False}).sort("updated_at", -1)
     out = []
     async for c in cur:
@@ -99,7 +77,7 @@ async def list_conversations(uid: str) -> List[Dict[str, Any]]:
     return out
 
 async def list_archived_conversations(uid: str) -> List[Dict[str, Any]]:
-    d = await db()
+    d = get_db()
     cur = d.conversations.find({"uid": uid, "archived": True}).sort("updated_at", -1)
     out = []
     async for c in cur:
@@ -107,19 +85,97 @@ async def list_archived_conversations(uid: str) -> List[Dict[str, Any]]:
     return out
 
 async def get_messages(uid: str, conversation_id: str) -> List[Dict[str, Any]]:
-    d = await db()
+    d = get_db()
     ok = await d.conversations.find_one({"_id": ObjectId(conversation_id), "uid": uid})
     if not ok:
         return []
     cur = d.messages.find({"conversation_id": ObjectId(conversation_id), "uid": uid}).sort("created_at", 1)
     out = []
     async for m in cur:
-        # out.append({"id": str(m["_id"]), "role": m["role"], "content": m["content"], "hits": m["hits"], "created_at": m["created_at"]})
         out.append({"id": str(m["_id"]), "role": m["role"], "content": m["content"], "created_at": m["created_at"]})
     return out
 
+async def get_messages_for_summary_window(
+    uid: str,
+    conversation_id: str,
+    turns: int,
+    window_size: int = 8,
+) -> List[Dict[str, Any]]:
+  
+    if turns <= 0 or turns % window_size != 0:
+        return []
+
+    d = get_db()
+
+    ok = await d.conversations.find_one(
+        {"_id": ObjectId(conversation_id), "uid": uid}
+    )
+    if not ok:
+        return []
+
+    start_user_turn = turns - window_size
+    end_user_turn = turns
+
+    cur = (
+        d.messages
+        .find({"conversation_id": ObjectId(conversation_id), "uid": uid})
+        .sort("created_at", 1)
+    )
+
+    out: List[Dict[str, Any]] = []
+    user_turn_count = 0
+    collecting = False
+
+    async for m in cur:
+        role = m.get("role")
+
+        if role == "user":
+            user_turn_count += 1
+
+            if user_turn_count == start_user_turn + 1:
+                collecting = True
+
+            if user_turn_count > end_user_turn:
+                break
+
+        if collecting:
+            out.append({
+                "id": str(m["_id"]),
+                "role": role,
+                "content": m.get("content"),
+                "created_at": m.get("created_at"),
+            })
+
+    return out
+
+
+
+# async def get_profile(uid: str) -> Dict[str, Any]:
+#     d = get_db()
+#     doc = await d.profiles.find_one({"uid": uid})
+#     if not doc:
+#         return {"name": None, "skin_type": None, "concerns": [], "allergies": [], "avoid_ingredients": [],
+#                 "prefer_ingredients": [], "budget_max": None, "fragrance_free": None}
+#     return doc.get("profile", {})
+
+# async def patch_profile(uid: str, patch: Dict[str, Any]) -> Dict[str, Any]:
+#     d = get_db()
+#     current = await get_profile(uid)
+#     merged = {**current}
+#     for k, v in patch.items():
+#         if v is None:
+#             merged[k] = None
+#         elif isinstance(v, list):
+#             merged[k] = list(dict.fromkeys([x for x in v if x is not None and x != ""]))
+#         else:
+#             merged[k] = v
+#     now = await now_ts()
+#     await d.profiles.update_one({"uid": uid}, {"$set": {"profile": merged, "updated_at": now}, "$setOnInsert": {"uid": uid, "created_at": now}}, upsert=True)
+#     return merged
+
+
 # async def put_favourites(favs : Dict[str, any], uid: str):
-#     fdb = await db()
+#     fdb = get_db()
 #     # ok = await fdb.favourites.insert_one(favs)  
 #     # fdoc =  {"uid" : uid, "product_name" : favs["product_name"], "price" : favs["price"],
 #     #                                        "type" : favs["category"], "url": favs["url"], "clean_ingreds" : favs["clean_ingreds"]
@@ -131,7 +187,7 @@ async def get_messages(uid: str, conversation_id: str) -> List[Dict[str, Any]]:
 #     return {"inserted_id": str(fok.inserted_id)}
 
 # async def get_favourites(uid):
-#     fdb = await db()
+#     fdb = get_db()
 #     ok = fdb.favourites.find({"uid" : uid})
     
 #     if not ok:
@@ -143,13 +199,13 @@ async def get_messages(uid: str, conversation_id: str) -> List[Dict[str, Any]]:
 #     return fp
 
 # async def delete_favorites(favs: Dict[str, any], uid:str):
-    dfdb = await db()
+    # dfdb = get_db()
     
-    query = {"uid" : uid, "product_name": favs["product_name"]}
+    # query = {"uid" : uid, "product_name": favs["product_name"]}
     
-    res = await dfdb.favourites.delete_one(query)
+    # res = await dfdb.favourites.delete_one(query)
     
-    if res.deleted_count > 0:
-        return {"status" : "Product is removed from Favorites"}
-    else:
-        return {"status" : "Product is not removed from Favorites"}
+    # if res.deleted_count > 0:
+    #     return {"status" : "Product is removed from Favorites"}
+    # else:
+    #     return {"status" : "Product is not removed from Favorites"}

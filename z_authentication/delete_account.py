@@ -1,7 +1,8 @@
 
 from fastapi import HTTPException, APIRouter
 from authModels import EmailRequest
-from utils.db import users_col, backup_users
+# from utils.db import users_col, backup_users
+from utils.db import get_db, get_bkdb
 from firebase_admin_init import *
 from datetime import datetime
 
@@ -9,6 +10,11 @@ delete_account_router = APIRouter()
 
 @delete_account_router.post("/delete-account")
 async def delete_account(data: EmailRequest):
+    db = get_db()
+    users_col = db["users"]
+    
+    bkdb = get_bkdb()
+    backup_users = bkdb["users_del"]
     user = await users_col.find_one({"email": data.email})
 
     if not user:

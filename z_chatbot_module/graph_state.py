@@ -5,12 +5,6 @@ class ChatState(TypedDict, total=False):
     conversation_id: Optional[str]
     message: str
 
-    # from intent + RAG
-    # intent_recommend: Optional[bool]
-    # intent: Optional[bool]
-    # intent_query: Optional[str]
-    # hits: Optional[List[Dict[str, Any]]]
-
     # memory
     user_profile: Dict[str, Any]
     # profile: Dict[str, Any]
@@ -28,20 +22,8 @@ class ChatState(TypedDict, total=False):
     all_messages: List[Dict[str, Any]]
 
 
-
-class TrialChatState(TypedDict, total=False):
-    guest_id : str
-    conversation_id: Optional[str]
-    message: str
-
-    recent_messages: List[Dict[str, str]]
-    
-    # LLM
-    used_messages: List[Dict[str, str]]
-    reply: str
-
-    remaining_trials: int
-    trials_exhausted: bool
-    
-    title:str
-    turns: int
+    # from intent + RAG
+    # intent_recommend: Optional[bool]
+    # intent: Optional[bool]
+    # intent_query: Optional[str]
+    # hits: Optional[List[Dict[str, Any]]]

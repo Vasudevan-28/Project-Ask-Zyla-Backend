@@ -1,13 +1,13 @@
 import asyncio
 from datetime import datetime
-from z_chatbot_module.db import db
+from utils.db import get_db
 import logging
 
 logger = logging.getLogger("uvicorn")
 
 async def check_reminders():
 
-    ndb = await db()
+    ndb = get_db()
     # now = datetime.now().strftime("%H:%M")
     now = datetime.utcnow().strftime("%H:%M")
     logger.info(f"Server time is {datetime.utcnow().isoformat()}")
@@ -57,7 +57,7 @@ REMINDER_SLOTS = ("15:00", "21:00")
 
 async def check_todo_reminders():
  
-    ndb = await db()
+    ndb = get_db()
     now = datetime.now()
     current_time = now.strftime("%H:%M")
 

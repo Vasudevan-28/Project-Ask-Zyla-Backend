@@ -1,7 +1,8 @@
 
 from fastapi import FastAPI, HTTPException, Request, APIRouter
 from authModels import  LoginModel
-from utils.db import users_col
+# from utils.db import users_col
+from utils.db import get_db
 from utils.auth_helpers import verify_password
 from firebase_admin_init import *
 from firebase_admin import auth
@@ -11,6 +12,8 @@ login_router = APIRouter()
 
 @login_router.post("/login")
 async def login(data: LoginModel, request: Request = None):
+    db = get_db()
+    users_col = db["users"]
 
     identifier = data.identifier.strip()
 
