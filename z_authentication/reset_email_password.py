@@ -1,11 +1,8 @@
 from fastapi import  HTTPException,  APIRouter
 from authModels import ResetPasswordEmail
-# from utils.db import users_col
 from utils.db import get_db
 from utils.auth_helpers import hash_password
-from firebase_admin_init import *
 from firebase_admin import auth
-
 
 reset_email_pass_router = APIRouter()
 

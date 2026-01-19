@@ -1,19 +1,7 @@
-from fastapi import FastAPI, HTTPException, Request, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from authModels import EmailOtpVerify, EmailRequest,GoogleEmailCheck, LoginModel, OTPVerify, PhoneOtpAttempt, PhoneRequest, ResetPasswordEmail, ResetPasswordPhone, SaveToken, SaveUserModel,SignUpModel
-# from utils.db import users_col, skin_col, backup_users
+from fastapi import HTTPException, APIRouter
 from utils.db import get_db
-from utils.auth_helpers import hash_password, verify_password, generate_otp, otp_expiry
-from firebase_admin_init import *
-from firebase_admin import auth
-import smtplib
-from email.mime.text import MIMEText
-import os
-from datetime import datetime, timedelta, timezone
-import pytz
-from dateutil import parser
-from chatAppRoute import chatApp
+from utils.auth_helpers import hash_password
+from datetime import datetime, timezone
 
 save_user_router = APIRouter()
 

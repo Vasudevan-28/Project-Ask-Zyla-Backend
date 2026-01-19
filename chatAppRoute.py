@@ -3,7 +3,6 @@ from fastapi import APIRouter
 from z_chatbot_module.conversations import conversation_router
 from z_chatbot_module.chatbot import chatbot_router
 
-
 # app = FastAPI(title="Ask Zyla Auth", version="1.0.0")
 
 chatApp = APIRouter(prefix="/chatApp", tags=["chat app"])
@@ -13,7 +12,6 @@ chatApp.include_router(conversation_router)
 chatApp.include_router(chatbot_router)
 
 # chatApp.include_router(appAuth)
-
 
 @chatApp.get("/testChatApp")
 def testingApi():

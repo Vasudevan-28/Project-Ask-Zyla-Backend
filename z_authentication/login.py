@@ -4,7 +4,6 @@ from authModels import  LoginModel
 # from utils.db import users_col
 from utils.db import get_db
 from utils.auth_helpers import verify_password
-from firebase_admin_init import *
 from firebase_admin import auth
 from datetime import datetime
 

@@ -1,14 +1,11 @@
-from fastapi import FastAPI, HTTPException, Request, APIRouter
+from fastapi import HTTPException, APIRouter
 from authModels import EmailRequest
-# from utils.db import users_col, skin_col, backup_users
 from utils.db import get_db
 from utils.auth_helpers import generate_otp
-from firebase_admin_init import *
-from firebase_admin import auth
 import smtplib
 from email.mime.text import MIMEText
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import pytz
 from z_authentication.timezone_helper import make_tz_aware
 

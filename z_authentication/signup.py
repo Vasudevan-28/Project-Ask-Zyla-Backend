@@ -1,9 +1,6 @@
 from fastapi import HTTPException, APIRouter
-# from utils.db import users_col
 from utils.db import get_db
 from utils.auth_helpers import hash_password
-from firebase_admin_init import *
-from firebase_admin import auth
 
 from datetime import datetime, timezone
 
@@ -14,7 +11,6 @@ async def signup(data: dict):
     db = get_db()
     users_col = db["users"]
 
-    #  Must await async MongoDB call
     existing_user = await users_col.find_one({"email": data["email"]})
 
     if existing_user:
@@ -30,7 +26,7 @@ async def signup(data: dict):
     
     data["registered_at"] = datetime.now(timezone.utc)
 
-    #  Must await insert too
+    
     # await users_col.insert_one({
     #     "name": data.name,
     #     "email": data.email,

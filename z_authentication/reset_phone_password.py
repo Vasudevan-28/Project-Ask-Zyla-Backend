@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 from authModels import  ResetPasswordPhone
-# from utils.db import users_col
 from utils.db import get_db
 from utils.auth_helpers import hash_password
 

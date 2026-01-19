@@ -1,9 +1,7 @@
 
 from fastapi import HTTPException, APIRouter
 from authModels import EmailRequest
-# from utils.db import users_col, backup_users
 from utils.db import get_db, get_bkdb
-from firebase_admin_init import *
 from datetime import datetime
 
 delete_account_router = APIRouter()

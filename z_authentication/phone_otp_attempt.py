@@ -1,6 +1,5 @@
 from fastapi import HTTPException, APIRouter
 from authModels import  PhoneOtpAttempt
-# from utils.db import users_col
 from utils.db import get_db
 from z_authentication.timezone_helper import make_tz_aware, IST
 
