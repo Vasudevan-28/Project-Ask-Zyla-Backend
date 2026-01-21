@@ -46,7 +46,7 @@ async def send_email_otp(data: EmailRequest):
     # Already hit 3 attempts in this window → start block
     if attempts >= 3:
         block_until = now + timedelta(minutes=30)
-        users_col.update_one(
+        await users_col.update_one(
             {"_id": user["_id"]},
             {
                 "$set": {
@@ -93,6 +93,7 @@ async def send_email_otp(data: EmailRequest):
             server.login(sender, password)
             server.sendmail(sender, data.email, msg.as_string())
     except Exception as e:
+        print("SMTP ERROR:", repr(e))
         raise HTTPException(status_code=500, detail=f"Email error: {e}")
 
     return {"message": "OTP sent to email", "otp_expiry": expiry_dt.isoformat()}
