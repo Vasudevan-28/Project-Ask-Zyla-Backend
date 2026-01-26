@@ -48,8 +48,11 @@ class ResetPasswordPhone(BaseModel):
 
 
 class ResetPasswordEmail(BaseModel):
-    email: str
+    # email: str
     new_password: str    
+    
+class SetNewPassword(BaseModel):
+    new_password: str
 
 
 class EmailOtpVerify(BaseModel):

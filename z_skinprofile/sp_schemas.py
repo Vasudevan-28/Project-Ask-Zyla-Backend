@@ -22,7 +22,7 @@ class OtherSymptoms(BaseModel):
     details: Optional[str] = ""
 
 class SkinProfileData(BaseModel):
-    userId: str
+    # userId: str
    
     concerns: List[str]
     skinType: List[str]

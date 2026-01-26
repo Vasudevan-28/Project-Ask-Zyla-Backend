@@ -57,6 +57,16 @@ async def login(data: LoginModel, request: Request = None):
         }
     )
 
+    
+    skinpro = user.get("skin_profile", False)
+
+    return {"message": "success", "method": method, "skin_profile": skinpro}
+
+
+
+
+
+
     # Send login email
     # try:
     #     sender = os.getenv("SMTP_EMAIL")
@@ -82,7 +92,3 @@ async def login(data: LoginModel, request: Request = None):
 
     # except Exception as e:
     #     print("Email error maillll :", e)
-    
-    skinpro = user.get("skin_profile", False)
-
-    return {"message": "success", "method": method, "skin_profile": skinpro}

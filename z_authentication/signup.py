@@ -1,5 +1,6 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Depends
 from utils.db import get_db
+from utils._auth_firebase import auth_user_fb
 from utils.auth_helpers import hash_password
 
 from datetime import datetime, timezone
@@ -7,9 +8,11 @@ from datetime import datetime, timezone
 signup_router = APIRouter()
 
 @signup_router.post("/signup")
-async def signup(data: dict):
+async def signup(data: dict, user = Depends(auth_user_fb)):
     db = get_db()
     users_col = db["users"]
+    
+    user_uid = user.get("uid")
 
     existing_user = await users_col.find_one({"email": data["email"]})
 
@@ -23,7 +26,8 @@ async def signup(data: dict):
 
     data["cred_pass"] = data["password"]
     data["password"] = hash_password(data["password"])
-    
+    data["firebase_uid"] = user_uid
+    # data["registered"] = False
     data["registered_at"] = datetime.now(timezone.utc)
 
     

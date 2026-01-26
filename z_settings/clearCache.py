@@ -1,5 +1,3 @@
-
-# from utils.db import db, bkdb
 from utils.db import get_db, get_bkdb
 from datetime import datetime
 from typing import Dict, Any, List
