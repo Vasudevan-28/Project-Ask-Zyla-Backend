@@ -12,3 +12,4 @@ bcrypt
 uvicorn
 python-dateutil
 pydantic[email]
+resend
