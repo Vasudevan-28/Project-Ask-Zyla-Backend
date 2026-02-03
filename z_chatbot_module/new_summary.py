@@ -191,11 +191,9 @@ async def summarize_conversation_if_needed(
     previous_summary = doc.get("summary", "") if doc else ""
     previous_user_turns = int(doc.get("turns", 0)) if doc else 0
 
-    # Safety guard: prevent double-summarization
     if turns <= previous_user_turns:
         return previous_summary
 
-    # Build summary input directly from windowed messages
     new_text_lines: List[str] = []
     for m in all_messages:
         role = (m.get("role") or "").upper()
