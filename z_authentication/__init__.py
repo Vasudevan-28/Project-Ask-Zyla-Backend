@@ -7,10 +7,11 @@ from z_authentication.delete_account import delete_account_router
 from z_authentication.set_new_password import set_new_pass_router
 from z_authentication.get_email_by_ph import get_email_phone_router
 from z_authentication.phone_otp_attempt import ph_otp_attempt_router
-from z_authentication.reset_email_password import reset_email_pass_router
+# from z_authentication.reset_email_password import reset_email_pass_router
 from z_authentication.reset_phone_password import reset_phone_pass_router
 from z_authentication.send_email_otp import seo_router
 from z_authentication.verify_email_otp import verify_otp_router
+from z_authentication.forgot_pass_email import forgot_email_pass_router
 
 from z_authentication.me import fetch_me_router
 
@@ -26,8 +27,9 @@ auth_router.include_router(save_user_router)
 auth_router.include_router(delete_account_router)
 auth_router.include_router(set_new_pass_router)
 auth_router.include_router(get_email_phone_router)
-auth_router.include_router(reset_email_pass_router)
+# auth_router.include_router(reset_email_pass_router)
 auth_router.include_router(reset_phone_pass_router)
 auth_router.include_router(seo_router)
 auth_router.include_router(verify_otp_router)
 auth_router.include_router(ph_otp_attempt_router)
+auth_router.include_router(forgot_email_pass_router)

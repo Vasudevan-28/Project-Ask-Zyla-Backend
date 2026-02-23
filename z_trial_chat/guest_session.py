@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from fastapi import Cookie, Response, HTTPException, Depends
+from fastapi import Cookie
 from bson import ObjectId
 from utils.db import get_db, now_ts
 

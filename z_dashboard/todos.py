@@ -5,6 +5,7 @@ from utils.db import get_db
 from utils._auth_firebase import auth_user_fb
 from bson import ObjectId
 from starlette.status import HTTP_401_UNAUTHORIZED
+from datetime import datetime, timedelta
 
 torouter = APIRouter(prefix="/todoCall")
 
@@ -38,7 +39,7 @@ async def get_todos(date: str = Query(..., description="Date in YYYY-MM-DD forma
 async def add_todo(todo: ToDoModel = Body(...), user=Depends(auth_user_fb)):
     tdb = get_db()
     todo_dict = todo.dict(by_alias=True, exclude={"id"})
-    todo_dict['uid'] = user['uid']  # Ensure each todo is tagged with the user's UID
+    todo_dict['uid'] = user['uid']  
 
     new_todo = await tdb["todos"].insert_one(todo_dict)
     created_todo = await tdb["todos"].find_one({"_id": new_todo.inserted_id})
@@ -83,9 +84,8 @@ async def delete_todo(id: str, user=Depends(auth_user_fb)):
 
 @torouter.get("/streak")
 async def get_streak(user=Depends(auth_user_fb)):
-    from datetime import datetime, timedelta
+
     tdb = get_db()
-    # Only fetch streaks for this user!
     cursor = tdb["streaks"].find({"completed": True, "uid": user["uid"]}).sort("date", -1)
     completed_dates = await cursor.to_list(None)
     completed_set = {d["date"] for d in completed_dates}

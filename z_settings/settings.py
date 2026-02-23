@@ -82,7 +82,7 @@ async def get_or_create_feedback(uid: str) -> Dict[str, Any]:
     # ensure_connected()
     spdb = get_db()
     try:
-        doc = await spdb.feedback_col.find_one({"firebase_uid": uid})  # type: ignore
+        doc = await spdb.feedback_col.find_one({"firebase_uid": uid})  
     except PyMongoError as e:
         logger.error(f"feedback find_one error: {e}")
         raise HTTPException(status_code=503, detail="Database error")
@@ -90,7 +90,7 @@ async def get_or_create_feedback(uid: str) -> Dict[str, Any]:
         return doc
     default_doc = {"firebase_uid": uid, "feedback": ""}
     try:
-        result = await spdb.feedback_col.insert_one(default_doc)  # type: ignore
+        result = await spdb.feedback_col.insert_one(default_doc)  
     except PyMongoError as e:
         logger.error(f"feedback insert_one error: {e}")
         raise HTTPException(status_code=503, detail="Database error")
@@ -101,7 +101,7 @@ async def get_or_create_rating(uid: str) -> Dict[str, Any]:
     # ensure_connected()
     spdb = get_db()
     try:
-        doc = await spdb.rating_col.find_one({"firebase_uid": uid})  # type: ignore
+        doc = await spdb.rating_col.find_one({"firebase_uid": uid})  
     except PyMongoError as e:
         logger.error(f"rating find_one error: {e}")
         raise HTTPException(status_code=503, detail="Database error")
@@ -219,7 +219,6 @@ async def get_rating(user: dict = Depends(auth_user_fb)):
     return serialize(doc)
 
 @sett.put("/rating")
-
 async def update_rating(payload: RatingUpdate, user: dict = Depends(auth_user_fb)):
     spdb = get_db()
 

@@ -51,6 +51,10 @@ class ResetPasswordEmail(BaseModel):
     # email: str
     new_password: str    
     
+class ForgotPasswordEmail(BaseModel):
+    email : str
+    new_password : str
+    
 class SetNewPassword(BaseModel):
     new_password: str
 

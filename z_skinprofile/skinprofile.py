@@ -19,8 +19,8 @@ def calculate_age(dob_str: str) -> int:
 
 
 # @skinpro_router.get("/skin-profile/{user_id}")
-@skinpro_router.get("/skin-profile")
 # async def get_skin_profile(user_id: str):
+@skinpro_router.get("/skin-profile")
 async def get_skin_profile( user = Depends(auth_user_fb) ):
     user_id = user["uid"]
     spdb = get_db()

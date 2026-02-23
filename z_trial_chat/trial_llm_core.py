@@ -46,7 +46,6 @@ GENERAL RULES:
 Your mission: make skincare feel easy, comforting, and doable for the user.
 """
 
-import json
 
 def build_context_messages(recent: List[Dict[str, str]]):
     msgs: List[Dict[str, str]] = []

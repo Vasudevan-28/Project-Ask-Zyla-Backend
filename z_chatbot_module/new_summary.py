@@ -21,32 +21,62 @@ GROQ_MODEL = os.getenv("GROQ_MODEL")
 
 _groq = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-CONVERSATION_SUMMARY_INSTRUCTIONS = """
-You are maintaining a concise, cumulative summary of an ongoing skincare conversation.
+# CONVERSATION_SUMMARY_INSTRUCTIONS = """
+# You are maintaining a concise, cumulative summary of an ongoing skincare conversation.
 
-Your task:
-- Merge the PREVIOUS SUMMARY with the NEW MESSAGES.
-- Preserve only durable, skincare-relevant information that should carry forward across turns.
+# Your task:
+# - Merge the PREVIOUS SUMMARY with the NEW MESSAGES.
+# - Preserve only durable, skincare-relevant information that should carry forward across turns.
 
-Always prioritize:
-- Primary and secondary skin concerns
-- Skin type (only the most current assessment)
-- Allergies, sensitivities, and explicitly forbidden ingredients
-- Stable preferences (e.g., fragrance-free, vegan, budget limits)
-- Confirmed recommendations or routines already agreed upon
-- Open questions, pending tests, or next steps
+# Always prioritize:
+# - Primary and secondary skin concerns
+# - Skin type (only the most current assessment)
+# - Allergies, sensitivities, and explicitly forbidden ingredients
+# - Stable preferences (e.g., fragrance-free, vegan, budget limits)
+# - Confirmed recommendations or routines already agreed upon
+# - Open questions, pending tests, or next steps
 
-Rules:
-- Remove or replace outdated, corrected, or contradicted information.
-- Do not repeat temporary symptoms unless they persist across messages.
-- Do NOT invent products, diagnoses, or ingredients.
-- Mention products or brands only if explicitly stated by the user or assistant.
-- Keep language factual, neutral, and non-speculative.
+# Rules:
+# - Remove or replace outdated, corrected, or contradicted information.
+# - Do not repeat temporary symptoms unless they persist across messages.
+# - Do NOT invent products, diagnoses, or ingredients.
+# - Mention products or brands only if explicitly stated by the user or assistant.
+# - Keep language factual, neutral, and non-speculative.
 
-Output format:
-- Plain-text bullet points only (no JSON, no headings).
-- 5–8 bullets maximum.
-- Total length under 1200 characters.
+# Output format:
+# - Plain-text bullet points only (no JSON, no headings).
+# - 5–8 bullets maximum.
+# - Total length under 1200 characters.
+# """
+
+CONVERSATIONS_SUMMARY_INSTRUCTIONS = """
+You are maintaining a running summary of a conversation.
+
+GOAL:
+Update the existing summary using the new messages.
+Do NOT rewrite the entire summary from scratch.
+
+RULES:
+- Preserve important facts, decisions, preferences, goals, and constraints from the previous summary.
+- Only add or modify information that is new or has changed.
+- Remove redundancies or outdated details if necessary.
+- Do NOT include small talk, filler, or verbatim dialogue.
+- Be concise and factual.
+- Write in third person.
+- Do NOT mention that this is a summary.
+
+STYLE:
+- Use short paragraphs or bullet points.
+- Prefer facts over wording.
+- Keep the total length under 200 words if possible.
+
+PREVIOUS SUMMARY:
+{previous_summary or "(none yet)"}
+
+NEW MESSAGES (chronological, most recent last):
+{new_text_block}
+
+Produce the updated summary below:
 """
 
 USER_PROFILE_EXTRACTION_INSTRUCTIONS = """You are updating a JSON skincare user profile.

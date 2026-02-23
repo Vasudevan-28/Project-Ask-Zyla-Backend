@@ -1,0 +1,12 @@
+Authentication - Firebase
+Chatbot - Groq - llama 3.1-8b instant
+Databasae - MongoDB
+Cache DB - Redis
+Cron Job - Cron-job.org
+Email Service - Resend
+Reverse Geo Coding - Geoapify
+Cookies Analytics - Google Analytics
+
+Backend Server - Render
+Frontend Server - Vercel
+Repository - GitHub
